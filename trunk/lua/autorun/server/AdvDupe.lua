@@ -3217,7 +3217,8 @@ function AdvDupe.OldSetPhysProp( pl, ent, BoneID, Bone, Data )
 			Bone = Entity:GetPhysicsObjectNum( BoneID )
 			if ( !Bone || !Bone:IsValid() ) then
 				Msg("SetPhysProp: Error applying attributes to invalid physics object!\n")
-			return end
+				return
+			end
 		end
 
 

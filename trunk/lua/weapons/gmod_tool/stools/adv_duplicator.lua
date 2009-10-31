@@ -8,32 +8,33 @@ TOOL.Category		= "Construction"
 TOOL.Name			= "#AdvancedDuplicator"
 
 if CLIENT then
-    language.Add( "AdvancedDuplicator", "Advanced Duplicator" )
-    language.Add( "Tool_adv_duplicator_name", "Advanced Duplicator" )
-    language.Add( "Tool_adv_duplicator_desc", "Duplicate an entity, or group of entities" )
-    language.Add( "Tool_adv_duplicator_0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
+	language.Add( "AdvancedDuplicator", "Advanced Duplicator" )
+	language.Add( "Tool_adv_duplicator_name", "Advanced Duplicator" )
+	language.Add( "Tool_adv_duplicator_desc", "Duplicate an entity, or group of entities" )
+	language.Add( "Tool_adv_duplicator_0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
 end
 
 
 TOOL.ClientConVar = {
-	save_filename		= "",
-	load_filename		= "",
-	load_filename2		= "",
-	load_filename_cl	= "",
-	file_desc			= "",
-	delay				= 0,
-	undo_delay			= 0,
-	range				= 1500,
-	show_beam			= 1,
-	debugsave			= 0,
-	LimitedGhost		= 0,
-	pasterkey			= -1,
-	pasterundo_key		= -1,
-	height				= 0,
-	angle				= 0,
-	worldOrigin			= 0,
-	pastefrozen			= 0,
-	pastewoconst		= 0
+	save_filename    = "",
+	load_filename    = "",
+	load_filename2   = "",
+	load_filename_cl = "",
+	file_desc        = "",
+	delay            = 0,
+	undo_delay       = 0,
+	range            = 1500,
+	show_beam        = 1,
+	debugsave        = 0,
+	LimitedGhost     = 0,
+	pasterkey        = -1,
+	pasterundo_key   = -1,
+	height           = 0,
+	angle            = 0,
+	worldOrigin      = 0,
+	worldAngles      = 0,
+	pastefrozen      = 0,
+	pastewoconst     = 0
 }
 
 cleanup.Register( "duplicates" )
@@ -77,13 +78,25 @@ function TOOL:LeftClick( trace )
 		local PasteFrozen = ( self:GetClientNumber( "pastefrozen" ) == 1 )
 		local PastewoConst = ( self:GetClientNumber( "pastewoconst" ) == 1 )
 
-		if ( self:GetClientNumber( "worldOrigin" ) == 0 ) then
+		local DupePos, DupeAngle
+		if self:GetClientNumber( "worldOrigin" ) ~= 0 then
+			-- Paste at original location
+			DupePos, DupeAngle = self.StartPos, Angle(0,0,0)
+		elseif self:GetClientNumber( "worldAngles" ) ~= 0 then
+			-- Paste at original Angles
+			DupePos, DupeAngle = trace.HitPos, Angle(0,0,0)
+		else
+			-- nothing checked
 			local HoldAngle = self.HoldAngle
 			--HoldAngle.yaw = self:GetClientNumber( "angle" )
-			AdvDupe.StartPaste( self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx, trace.HitPos + Vector(0,0,self:GetClientNumber( "height" )), angle - HoldAngle, self.NumOfEnts, self.NumOfConst, PasteFrozen, PastewoConst  )
-		else
-			AdvDupe.StartPaste( self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx, self.StartPos + Vector(0,0,self:GetClientNumber( "height" )), Angle(0,0,0), self.NumOfEnts, self.NumOfConst, PasteFrozen, PastewoConst )
+			DupePos, DupeAngle = trace.HitPos, angle - HoldAngle
 		end
+
+		AdvDupe.StartPaste(
+			self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx,
+			DupePos + Vector(0,0,self:GetClientNumber( "height" )), DupeAngle,
+			self.NumOfEnts, self.NumOfConst, PasteFrozen, PastewoConst
+		)
 
 	end
 
@@ -403,32 +416,41 @@ function TOOL:UpdateGhostEntities()
 		local height = self:GetClientNumber( "height" )
 		self.Weapon:SetNetworkedFloat( "height", height )
 
-		if not self.StartPos or self:GetClientNumber( "worldOrigin" ) == 0 then
-			trace.HitPos = trace.HitPos + Vector(0,0,height)
-			self.Weapon:SetNetworkedBool( "worldOrigin", ( self:GetClientNumber( "worldOrigin" ) == 1 ) )
-		elseif self.StartPos then
-			self.Weapon:SetNetworkedBool( "worldOrigin", ( self:GetClientNumber( "worldOrigin" ) == 1 ) )
+		self.Weapon:SetNetworkedBool( "worldOrigin", false )
+		self.Weapon:SetNetworkedBool( "worldAngles", false )
+		if self.StartPos and self:GetClientNumber( "worldOrigin" ) ~= 0 then
+			-- Paste at Original Location
+			self.Weapon:SetNetworkedBool( "worldOrigin", true )
 			self.Weapon:SetNetworkedVector( "StartPos", self.StartPos )
-			trace.HitPos = self.StartPos + Vector(0,0,height)
+			trace.HitPos = self.StartPos
+		elseif self:GetClientNumber( "worldAngles" ) ~= 0 then
+			-- Paste at Original Angle
+			self.Weapon:SetNetworkedBool( "worldAngles", true )
+		else
+			-- nothing checked
 		end
-
+		trace.HitPos = trace.HitPos + Vector(0,0,height)
 	else
+		-- TODO: fix client part for "worldAngles"
 		GhostEnt = self.Weapon:GetNetworkedEntity( "GhostEntity", nil )
 		GhostEnt.Pos = self.Weapon:GetNetworkedVector( "HeadPos", Vector(0,0,0) )
 		GhostEnt.Angle = self.Weapon:GetNetworkedAngle( "HeadAngle", Angle(0,0,0) )
 		HoldPos = self.Weapon:GetNetworkedVector( "HoldPos", Vector(0,0,0) )
 
-		if not self.Weapon:GetNetworkedBool( "worldOrigin" ) then
-			trace.HitPos = trace.HitPos + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
-		else
+		if self.Weapon:GetNetworkedBool( "worldOrigin" ) then
+			-- Paste at Original Location
 			trace.HitPos = self.Weapon:GetNetworkedVector( "StartPos" ) + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
+		else
+			-- Paste at Original Angles or nothing checked
 		end
+		trace.HitPos = trace.HitPos + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
 
 	end
 
 	if not GhostEnt or not GhostEnt:IsValid() then
 		self.GhostEntities = nil
-	return end
+		return
+	end
 
 	GhostEnt:SetMoveType( MOVETYPE_VPHYSICS )
 	GhostEnt:SetNotSolid( true )
@@ -441,10 +463,12 @@ function TOOL:UpdateGhostEntities()
 		PhysObj:EnableMotion( false )
 		PhysObj:SetPos( TargetPos + trace.HitPos )
 
-		if not self.Weapon:GetNetworkedBool( "worldOrigin" ) then
-			PhysObj:SetAngle( (GhostEnt.Angle or Angle(0,0,0)) + angle )
-		else
+		if self.Weapon:GetNetworkedBool( "worldOrigin" ) or self.Weapon:GetNetworkedBool( "worldAngles" )then
+			-- Paste at Original Location or Paste at Original Angles
 			PhysObj:SetAngle( self.Weapon:GetNetworkedAngle( "HoldAngle" ) )
+		else
+			-- nothing checked
+			PhysObj:SetAngle( (GhostEnt.Angle or Angle(0,0,0)) + angle )
 		end
 
 		PhysObj:Wake()
@@ -1155,6 +1179,8 @@ if CLIENT then
 			if AdvDupeClient.HasStartPos then
 				bottom:CheckBox("Paste at Original Location:", "adv_duplicator_worldOrigin")
 			end
+			bottom:CheckBox("Paste at Original Angles:", "adv_duplicator_worldAngles")
+
 			bottom:PerformLayout() --do this so bottom:GetTall() will return the correct value
 
 			CPanel:AddItem(ServerDir)
