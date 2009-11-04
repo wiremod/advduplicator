@@ -915,11 +915,22 @@ if SERVER then
 
 		local dir = string.Implode(" ", args)
 
-		if not SinglePlayer() and dir ~= "" and not string.find(dir, "^"..dupeshare.BaseDir) then
-			print("AdvDupe: WARNING: "..tostring(pl).." tried to access a folder outside of /"..dupeshare.BaseDir)
-			return
-		elseif dir == "" then
+		if dir == "" then
 			dir = AdvDupe.GetPlayersFolder(pl)
+		elseif not SinglePlayer() then
+			local plydir = dupeshare.ReplaceBadChar(tostring(pl:SteamID()))
+			plydir = string.gsub(plydir, "STEAM_1", "STEAM_0") -- I think this was needed cause Valve randomly changed everybody's IDs - Jimlad
+			plydir = dupeshare.BaseDir.."/"..plydir
+
+			local pubdir = dupeshare.BaseDir.."/=Public Folder="
+
+			if
+				dir:sub(1, pubdir:len()) ~= pubdir and
+				(dir.."/"):sub(1, plydir:len()+1) ~= plydir.."/" then
+			--if not string.find(dir, "^"..dupeshare.BaseDir.."/=Public Folder=") and not string.find(dir.."/", "^"..plydir.."/") then -- extra "/" is required for cases where the first part of two players' SteamIDs happen to match
+				print("AdvDupe: WARNING: "..tostring(pl).." tried to access a folder outside of Public or /"..plydir)
+				return
+			end
 		end
 
 		if file.Exists(dir) and file.IsDir(dir) then
