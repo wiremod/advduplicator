@@ -465,7 +465,7 @@ function TOOL:UpdateGhostEntities()
 
 		if self.Weapon:GetNetworkedBool( "worldOrigin" ) or self.Weapon:GetNetworkedBool( "worldAngles" )then
 			-- Paste at Original Location or Paste at Original Angles
-			PhysObj:SetAngle( self.Weapon:GetNetworkedAngle( "HoldAngle" ) )
+			PhysObj:SetAngle( self.Weapon:GetNetworkedAngle( "HoldAngle" ) + Angle(0, self:GetClientNumber( "angle" ), 0) )
 		else
 			-- nothing checked
 			PhysObj:SetAngle( (GhostEnt.Angle or Angle(0,0,0)) + angle )
