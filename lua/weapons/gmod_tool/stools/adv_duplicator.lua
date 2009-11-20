@@ -81,10 +81,10 @@ function TOOL:LeftClick( trace )
 		local DupePos, DupeAngle
 		if self:GetClientNumber( "worldOrigin" ) ~= 0 then
 			-- Paste at original location
-			DupePos, DupeAngle = self.StartPos, Angle(0,0,0)
+			DupePos, DupeAngle = self.StartPos, Angle(0,self:GetClientNumber( "angle" ),0)
 		elseif self:GetClientNumber( "worldAngles" ) ~= 0 then
 			-- Paste at original Angles
-			DupePos, DupeAngle = trace.HitPos, Angle(0,0,0)
+			DupePos, DupeAngle = trace.HitPos, Angle(0,self:GetClientNumber( "angle" ),0)
 		else
 			-- nothing checked
 			local HoldAngle = self.HoldAngle
@@ -439,7 +439,7 @@ function TOOL:UpdateGhostEntities()
 
 		if self.Weapon:GetNetworkedBool( "worldOrigin" ) then
 			-- Paste at Original Location
-			trace.HitPos = self.Weapon:GetNetworkedVector( "StartPos" ) + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
+			trace.HitPos = self.Weapon:GetNetworkedVector( "StartPos" )
 		else
 			-- Paste at Original Angles or nothing checked
 		end
@@ -1181,7 +1181,7 @@ if CLIENT then
 			end
 			--bottom:CheckBox("Debug Save (larger file):", "adv_duplicator_debugsave")
 			if AdvDupeClient.FileLoaded or AdvDupeClient.Copied then
-				bottom:NumSlider("Height Offset:", "adv_duplicator_height", -128, 128, 0)
+				bottom:NumSlider("Height Offset:", "adv_duplicator_height", -1024, 1024, 0)
 				bottom:NumSlider( "Angle Offset:", "adv_duplicator_angle", -180, 180, 0 )
 				bottom:CheckBox("Paste Frozen:", "adv_duplicator_pastefrozen")
 				bottom:CheckBox("Paste w/o Constraints (and frozen):", "adv_duplicator_pastewoconst")
