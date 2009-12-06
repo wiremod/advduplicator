@@ -1906,7 +1906,7 @@ local function MakeThinger(Player, Hide)
 	Shooting_Ent:SetOverlayText("AdvDupe Paster")
 	//DoPropSpawnedEffect( Shooting_Ent )
 	Player:AddCleanup( "duplicates", Shooting_Ent )
-	undo.Create( "Duplicator" )
+	undo.Create( "AdvDupe (pasting...)" )
 		undo.AddEntity( Shooting_Ent )
 		undo.SetPlayer( Player )
 	undo.Finish()
@@ -1945,28 +1945,30 @@ end
 //	Normal instant paste
 //
 function AdvDupe.AddDelayedPaste( Player, EntityList, ConstraintList, HeadEntityIdx, HitPos, HoldAngle, HideThinger, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger )
+	T = {
+		Player            = Player,
+		EntityList        = EntityList,
+		ConstraintList    = ConstraintList,
+		HeadEntityIdx     = HeadEntityIdx,
+		HitPos            = HitPos,
+		HoldAngle         = HoldAngle,
+		Shooting_Ent      = Thinger,
+		DontRemoveThinger = DontRemoveThinger,
+		NormPaste         = true,
+		Delay             = CurTime() + .2,
+		PasteFrozen       = PasteFrozen,
+		PastewoConst      = PastewoConst,
+		CallOnPasteFin    = CallOnPasteFin,
+		CreatedEntities   = {
+			EntityList = EntityList,
+		},
+		CreatedConstraints = {},
+	}
 
-	T					= {}
-	T.Player			= Player
-	T.EntityList		= EntityList
-	T.ConstraintList	= ConstraintList
-	T.HeadEntityIdx		= HeadEntityIdx
-	T.HitPos			= HitPos
-	T.HoldAngle			= HoldAngle
-	if ( Thinger ) and ( Thinger:IsValid() ) then
-		T.Shooting_Ent		= Thinger
-		T.DontRemoveThinger = DontRemoveThinger
-	else
-		T.Shooting_Ent		= MakeThinger(Player, HideThinger)
+	if not ValidEntity(Thinger) then
+		T.Shooting_Ent      = MakeThinger(Player, HideThinger)
+		T.DontRemoveThinger = nil
 	end
-	T.NormPaste			= true
-	T.Delay				= CurTime() + .2
-	T.PasteFrozen		= PasteFrozen
-	T.PastewoConst		= PastewoConst
-	T.CallOnPasteFin	= CallOnPasteFin
-	T.CreatedEntities	= {}
-	T.CreatedEntities.EntityList = EntityList
-	T.CreatedConstraints = {}
 
 	table.insert(TimedPasteData, T)
 
@@ -1976,6 +1978,22 @@ function AdvDupe.NormPasteFromTable( PasteData )
 	AdvDupe.NormPaste( PasteData.Player, PasteData.EntityList, PasteData.ConstraintList,
 		PasteData.HeadEntityIdx, PasteData.HitPos, PasteData.HoldAngle, PasteData.Shooting_Ent,
 		PasteData.PasteFrozen, PasteData.PastewoConst, PasteData.CreatedEntities, PasteData.CreatedConstraints)
+end
+
+function AdvDupe.GetUndoDescription(Player)
+	local gmod_tool = Player:GetWeapon("gmod_tool")
+	if not gmod_tool:IsValid() then return "AdvDupe" end
+
+	local self = gmod_tool.Tool.adv_duplicator
+	if not self.Info then return "AdvDupe" end
+
+	local path = self.Info.FilePath
+	if not path then return "AdvDupe" end
+
+	path = path:match("([^/\\]*)%.txt$")
+	if not path then return "AdvDupe" end
+
+	return "AdvDupe ("..path..")"
 end
 
 function AdvDupe.NormPaste( Player, EntityList, ConstraintList, HeadEntityIdx, Offset, HoldAngle, Shooting_Ent, PasteFrozen, PastewoConst, CreatedEntities, CreatedConstraints )
@@ -1990,7 +2008,7 @@ function AdvDupe.NormPaste( Player, EntityList, ConstraintList, HeadEntityIdx, O
 	AdvDupe.Paste( Player, EntityList, ConstraintList, HeadEntityIdx, Offset, HoldAngle, Shooting_Ent, PastewoConst, CreatedEntities, CreatedConstraints )
 
 	CreatedEntities.EntityList = nil
-	undo.Create( "Duplicator" )
+	undo.Create( AdvDupe.GetUndoDescription(Player) )
 
 		for EntID, Ent in pairs( CreatedEntities ) do
 			undo.AddEntity( Ent )
@@ -2313,7 +2331,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 	elseif Stage == 4 then
 
 		CreatedEntities.EntityList = nil
-		undo.Create( "Duplicator" )
+		undo.Create( AdvDupe.GetUndoDescription(Player) )
 			for EntID, Ent in pairs( CreatedEntities ) do
 				if (Ent:IsValid()) then
 
@@ -2905,7 +2923,7 @@ end
 
 
 //
-// Lagacy paste stuff
+// Legacy paste stuff
 //
 // Paste duplicated ents
 function AdvDupe.OldPaste( ply, Ents, Constraints, DupeInfo, DORInfo, HeadEntityID, offset )
