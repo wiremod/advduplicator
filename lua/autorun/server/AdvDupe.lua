@@ -1907,6 +1907,7 @@ local function MakeThinger(Player, Hide)
 	//DoPropSpawnedEffect( Shooting_Ent )
 	Player:AddCleanup( "duplicates", Shooting_Ent )
 	undo.Create( "AdvDupe (pasting...)" )
+		undo.SetCustomUndoText("Undone AdvDupe")
 		undo.AddEntity( Shooting_Ent )
 		undo.SetPlayer( Player )
 	undo.Finish()
@@ -2008,7 +2009,9 @@ function AdvDupe.NormPaste( Player, EntityList, ConstraintList, HeadEntityIdx, O
 	AdvDupe.Paste( Player, EntityList, ConstraintList, HeadEntityIdx, Offset, HoldAngle, Shooting_Ent, PastewoConst, CreatedEntities, CreatedConstraints )
 
 	CreatedEntities.EntityList = nil
-	undo.Create( AdvDupe.GetUndoDescription(Player) )
+	local desc = AdvDupe.GetUndoDescription(Player)
+	undo.Create( desc )
+		undo.SetCustomUndoText( "Undone "..desc )
 
 		for EntID, Ent in pairs( CreatedEntities ) do
 			undo.AddEntity( Ent )
@@ -2331,7 +2334,9 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 	elseif Stage == 4 then
 
 		CreatedEntities.EntityList = nil
-		undo.Create( AdvDupe.GetUndoDescription(Player) )
+		local desc = AdvDupe.GetUndoDescription(Player)
+		undo.Create( desc )
+			undo.SetCustomUndoText( "Undone "..desc )
 			for EntID, Ent in pairs( CreatedEntities ) do
 				if (Ent:IsValid()) then
 
@@ -2793,7 +2798,7 @@ local function GetCaselessEntTable(class)
 		return tbl
 	end
 
-	for thisclass,tbl in scripted_ents.GetList() do
+	for thisclass,tbl in pairs(scripted_ents.GetList()) do
 		if lower(thisclass) == lclass then
 			tablecache[lclass] = tbl
 			return tbl
@@ -2802,7 +2807,7 @@ local function GetCaselessEntTable(class)
 end
 
 hook.Add("InitPostEntity", "GetCaselessEntTable", function()
-	for thisclass,tbl in scripted_ents.GetList() do
+	for thisclass,tbl in pairs(scripted_ents.GetList()) do
 		tablecache[lower(thisclass)] = tbl
 	end
 end)
