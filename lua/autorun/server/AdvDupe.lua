@@ -2785,7 +2785,7 @@ local lower = string.lower
 local function GetCaselessEntTable(class)
 	local lclass = lower(class)
 	local tbl = tablecache[lclass]
-	if tbl then return tbl
+	if tbl then return tbl end
 
 	tbl = scripted_ents.GetStored(class) or scripted_ents.GetStored(lclass)
 	if tbl then
