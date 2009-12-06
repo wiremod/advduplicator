@@ -2780,6 +2780,32 @@ function AdvDupe.FreezeEntity( pl, Ent, AddToFrozenList )
 	end
 end
 
+local tablecache = {}
+local lower = string.lower
+local function GetCaselessEntTable(class)
+	local lclass = lower(class)
+	local tbl = tablecache[lclass]
+	if tbl then return tbl
+
+	tbl = scripted_ents.GetStored(class) or scripted_ents.GetStored(lclass)
+	if tbl then
+		tablecache[lclass] = tbl
+		return tbl
+	end
+
+	for thisclass,tbl in scripted_ents.GetList() do
+		if lower(thisclass) == lclass then
+			tablecache[lclass] = tbl
+			return tbl
+		end
+	end
+end
+
+hook.Add("InitPostEntity", "GetCaselessEntTable", function()
+	for thisclass,tbl in scripted_ents.GetList() do
+		tablecache[lower(thisclass)] = tbl
+	end
+end)
 
 
 //
@@ -2822,7 +2848,7 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 
 	end
 
-	local test = scripted_ents.GetStored( EntTable.Class )
+	local test = GetCaselessEntTable( EntTable.Class )
 
 	if ( Player:IsAdmin( ) or Player:IsSuperAdmin() or SinglePlayer() or !DontAllowPlayersAdminOnlyEnts ) then
 		return true
