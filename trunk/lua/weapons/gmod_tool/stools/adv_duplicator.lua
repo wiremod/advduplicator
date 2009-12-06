@@ -677,7 +677,7 @@ function TOOL:SaveFile( filename, desc )
 
 	self.Info				= {}
 	self.Info.Creator		= Creator
-	self.Info.FilePath		= filepath
+	self.Info.FilePath		= Filename
 	self.Info.Desc			= Desc
 	self.Info.FileVersion	= FileVersion
 	self.Info.FileDate		= FileDate
