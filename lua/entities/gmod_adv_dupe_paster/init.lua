@@ -229,24 +229,24 @@ end
 
 
 local function Paste( pl, ent )
-	if (!ent:IsValid()) or (!ent:GetTable().ClearToPaste) then return end
+	if (!ent:IsValid()) or (!ent.ClearToPaste) then return end
 
-	ent:GetTable().ClearToPaste = false
+	ent.ClearToPaste = false
 
-	local delay = ent:GetTable().delay
-	if (delay == 0) then ent:GetTable():Paste() return end
+	local delay = ent.delay
+	if (delay == 0) then ent:Paste() return end
 
 	local TimedSpawn = 	function ( ent, pl )
 							if (!ent) then return end
 							if (!ent == NULL) then return end
-							ent:GetTable():Paste()
+							ent:Paste()
 						end
 	timer.Simple( delay, TimedSpawn, ent, pl )
 end
 
 local function Undo( pl, ent )
 	if (!ent:IsValid()) then return end
-	ent:GetTable():DoUndo( pl )
+	ent:DoUndo( pl )
 end
 
 numpad.Register( "PasterCreate",	Paste )
