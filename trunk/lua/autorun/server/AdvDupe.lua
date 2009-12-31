@@ -23,16 +23,16 @@ CreateConVar( "sv_AdvDupeEnablePublicFolder", 1, {FCVAR_ARCHIVE} )
 /*---------------------------------------------------------
   Process and save given dupe tables to file
 ---------------------------------------------------------*/
-function AdvDupe.SaveDupeTablesToFile( pl, EntTables, ConstraintTables, HeadEntityIdx, HoldAngle, HoldPos, filename, desc, StartPos, debugsave )
+function AdvDupe.SaveDupeTablesToFile( ply, EntTables, ConstraintTables, HeadEntityIdx, HoldAngle, HoldPos, filename, desc, StartPos, debugsave )
 
 	//save to a sub folder for each player
-	//local dir = "adv_duplicator/"..dupeshare.GetPlayerName(pl)
-	if (!AdvDupe[pl]) then AdvDupe[pl] = {} end
-	local dir = AdvDupe[pl].cdir or AdvDupe.GetPlayersFolder(pl)
+	//local dir = "adv_duplicator/"..dupeshare.GetPlayerName(ply)
+	if (!AdvDupe[ply]) then AdvDupe[ply] = {} end
+	local dir = AdvDupe[ply].cdir or AdvDupe.GetPlayersFolder(ply)
 
 	//get and check the that filename contains no illegal characters
 	local filename = dupeshare.ReplaceBadChar(filename)
-	//tostring(pl:GetInfo( "adv_duplicator_save_filename" )))
+	//tostring(ply:GetInfo( "adv_duplicator_save_filename" )))
 
 	filename = dupeshare.FileNoOverWriteCheck( dir, filename )
 
@@ -48,7 +48,7 @@ function AdvDupe.SaveDupeTablesToFile( pl, EntTables, ConstraintTables, HeadEnti
 	end
 	temp.Constraints		= ConstsTable
 
-	local Creator			= pl:GetName()	or "unknown"
+	local Creator			= ply:GetName() or "unknown"
 	local NumOfEnts			= table.Count(EntTables) or 0
 	local NumOfConst		= table.Count(ConstraintTables) or 0
 
@@ -74,7 +74,7 @@ function AdvDupe.SaveDupeTablesToFile( pl, EntTables, ConstraintTables, HeadEnti
 	ExtraHeader[10] = "HoldPos:"				..string.format( "%g,%g,%g", HoldPos.x, HoldPos.y, HoldPos.z )
 	ExtraHeader[11] = "StartPos:"				..string.format( "%g,%g,%g", StartPos.x, StartPos.y, StartPos.z )
 
-	Serialiser.SaveTablesToFile( pl, filename, Header, ExtraHeader, NumOfEnts, EntTables, NumOfConst, ConstsTable, debugsave )
+	Serialiser.SaveTablesToFile( ply, filename, Header, ExtraHeader, NumOfEnts, EntTables, NumOfConst, ConstsTable, debugsave )
 
 	return filename, Creator, desc , NumOfEnts, NumOfConst, AdvDupe.FileVersion //for sending to client after saving
 end
@@ -82,17 +82,17 @@ end
 /*---------------------------------------------------------
   Load and return dupe tables from given file
 ---------------------------------------------------------*/
-function AdvDupe.LoadDupeTableFromFile( pl, filepath )
+function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 
 	if ( !file.Exists(filepath) ) then return end
 
 	//load from file
 	//local temp = file.Read(filepath)
 
-	local tool = AdvDupe.GetAdvDupeToolObj(pl)
+	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if ( !tool ) then return end
 
-	local function Load1(pl, filepath, tool, temp)
+	local function Load1(ply, filepath, tool, temp)
 
 		//
 		//	new file format
@@ -101,7 +101,7 @@ function AdvDupe.LoadDupeTableFromFile( pl, filepath )
 
 			//local HeaderTbl, ExtraHeaderTbl, Data = Serialiser.DeserialiseWithHeaders( temp )
 
-			local function Load2NewFile(pl, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
+			local function Load2NewFile(ply, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
 				if ( HeaderTbl.Type ) and ( HeaderTbl.Type == "AdvDupe File" ) then
 
 					MsgN("AdvDupe:Loaded new file ",filepath,"  version: ",ExtraHeaderTbl.FileVersion)
@@ -185,7 +185,7 @@ function AdvDupe.LoadDupeTableFromFile( pl, filepath )
 						end
 					end*/
 
-					pl:ConCommand( "adv_duplicator_height "..(Data.Height + 8) )
+					ply:ConCommand( "adv_duplicator_height "..(Data.Height + 8) )
 
 					tool:LoadFileCallBack( filepath,
 						Data.Entities, Data.Constraints,
@@ -240,16 +240,16 @@ function AdvDupe.LoadDupeTableFromFile( pl, filepath )
 					"n/a"*/
 
 				else
-					AdvDupe.SendClientError(pl, "Unknown File Type or Bad File")
+					AdvDupe.SendClientError(ply, "Unknown File Type or Bad File")
 					Msg("AdvDupeERROR: Unknown File Type or Bad File\n")
-					AdvDupe.SetPercent( pl, -1 )
+					AdvDupe.SetPercent( ply, -1 )
 					return
 				end
 			end
 
-			//timer.Simple(.1, Load2NewFile, pl, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
+			//timer.Simple(.1, Load2NewFile, ply, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
 
-			Serialiser.DeserialiseWithHeaders( temp, Load2NewFile, pl, filepath, tool )
+			Serialiser.DeserialiseWithHeaders( temp, Load2NewFile, ply, filepath, tool )
 
 			return //or it will try to load as an old file
 
@@ -277,7 +277,7 @@ function AdvDupe.LoadDupeTableFromFile( pl, filepath )
 			Msg("AdvDupeINFO:File is newer than installed version, failure may occure, you should update.")
 		end
 
-		local function Load3(pl, filepath, tool, temp)
+		local function Load3(ply, filepath, tool, temp)
 			//check the file was loaded and we understand it's version then load the data in to the tables
 			if (temp) and (temp["VersionInfo"]) and (temp["VersionInfo"]["FileVersion"] >= 0.6) then
 				MsgN("AdvDupe:Loaded old file ",filepath,"  version: ",temp.VersionInfo.FileVersion)
@@ -353,20 +353,20 @@ function AdvDupe.LoadDupeTableFromFile( pl, filepath )
 
 			else
 				MsgN("AdvDupeERROR:FILE FAILED TO LOAD! something is wrong with this file:  ",filepath)
-				AdvDupe.SendClientError( pl, "Failed loading file" )
-				AdvDupe.SetPercent( pl, -1 )
+				AdvDupe.SendClientError( ply, "Failed loading file" )
+				AdvDupe.SetPercent( ply, -1 )
 			end
 
-			AdvDupe.SetPercent(pl, 50)
+			AdvDupe.SetPercent(ply, 50)
 
 		end
 
-		AdvDupe.SetPercent(pl, 30)
-		timer.Simple(.1, Load3, pl, filepath, tool, temp)
+		AdvDupe.SetPercent(ply, 30)
+		timer.Simple(.1, Load3, ply, filepath, tool, temp)
 	end
 
-	AdvDupe.SetPercent(pl, 10)
-	timer.Simple(.1, Load1, pl, filepath, tool, file.Read(dupeshare.ParsePath(filepath)) or "")
+	AdvDupe.SetPercent(ply, 10)
+	timer.Simple(.1, Load1, ply, filepath, tool, file.Read(dupeshare.ParsePath(filepath)) or "")
 
 end
 
@@ -784,7 +784,7 @@ end
 
 
 /*AdvDupe.NewSave = true
-local function NewSaveSet(pl, cmd, args)
+local function NewSaveSet(ply, cmd, args)
 	if args[1] and args[1] == "1" or args[1] == 1 then
 		AdvDupe.NewSave = true
 	elseif args[1] and args[1] == "0" or args[1] == 0 then
@@ -835,15 +835,15 @@ if (dupeshare and dupeshare.PublicDirs) then
 end
 
 
-function AdvDupe.GetPlayersFolder(pl)
+function AdvDupe.GetPlayersFolder(ply)
 	local dir = dupeshare.BaseDir
 
 	if not SinglePlayer() then
-		local name = dupeshare.ReplaceBadChar(tostring(pl:SteamID()))
+		local name = dupeshare.ReplaceBadChar(tostring(ply:SteamID()))
 		name = string.gsub(name, "STEAM_1", "STEAM_0") --I think this was needed cause Valve randomly changed everybody's IDs
 
 		if (name == "STEAM_ID_LAN") or (name == "UNKNOWN") or (name == "STEAM_ID_PENDING") then
-			name = dupeshare.GetPlayerName(pl) or "unknown"
+			name = dupeshare.GetPlayerName(ply) or "unknown"
 		end
 
 		dir = dir.."/"..name
@@ -854,18 +854,18 @@ end
 
 
 
-function AdvDupe.MakeDir(pl, cmd, args)
-	if !pl:IsValid() or !pl:IsPlayer() or !args[1] then return end
+function AdvDupe.MakeDir(ply, cmd, args)
+	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
 
-	local dir = AdvDupe[pl].cdir
+	local dir = AdvDupe[ply].cdir
 	local foldername = dupeshare.ReplaceBadChar(string.Implode(" ", args))
 
-	AdvDupe.FileOpts(pl, "makedir", foldername, dir)
+	AdvDupe.FileOpts(ply, "makedir", foldername, dir)
 
-	/*local dir = AdvDupe[pl].cdir.."/"..dupeshare.ReplaceBadChar(args[1])
+	/*local dir = AdvDupe[ply].cdir.."/"..dupeshare.ReplaceBadChar(args[1])
 
 	if file.Exists(dir) and file.IsDir(dir) then
-		AdvDupe.SendClientError(pl, "Folder Already Exists!")
+		AdvDupe.SendClientError(ply, "Folder Already Exists!")
 		return
 	end
 
@@ -875,122 +875,122 @@ function AdvDupe.MakeDir(pl, cmd, args)
 		//todo
 	end
 
-	//AdvDupe.UpdateList(pl)
+	//AdvDupe.UpdateList(ply)
 
 end
 concommand.Add("adv_duplicator_makedir", AdvDupe.MakeDir)
 
-local function FileOptsCommand(pl, cmd, args)
-	if !pl:IsValid() or !pl:IsPlayer() or !args[1] then return end
+local function FileOptsCommand(ply, cmd, args)
+	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
 
 	local action = args[1]
-	//local filename = dupeshare.GetFileFromFilename(pl:GetInfo( "adv_duplicator_load_filename" ))..".txt"
-	local filename = pl:GetInfo( "adv_duplicator_load_filename" )
-	//local filename2 = pl:GetInfo( "adv_duplicator_load_filename2" )
-	local dir	= AdvDupe[pl].cdir
-	local dir2	= AdvDupe[pl].cdir2
+	//local filename = dupeshare.GetFileFromFilename(ply:GetInfo( "adv_duplicator_load_filename" ))..".txt"
+	local filename = ply:GetInfo( "adv_duplicator_load_filename" )
+	//local filename2 = ply:GetInfo( "adv_duplicator_load_filename2" )
+	local dir	= AdvDupe[ply].cdir
+	local dir2	= AdvDupe[ply].cdir2
 
-	AdvDupe.FileOpts(pl, action, filename, dir, dir2)
+	AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 
 end
 concommand.Add("adv_duplicator_fileopts", FileOptsCommand)
 
-local function FileOptsRenameCommand(pl, cmd, args)
+local function FileOptsRenameCommand(ply, cmd, args)
 	Msg("rename cmd\n")
-	if !pl:IsValid() or !pl:IsPlayer() or !args[1] then return end
+	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
 
-	//local filename = dupeshare.GetFileFromFilename(pl:GetInfo( "adv_duplicator_load_filename" ))..".txt"
-	local filename = pl:GetInfo( "adv_duplicator_load_filename" )
-	local dir	= AdvDupe[pl].cdir
+	//local filename = dupeshare.GetFileFromFilename(ply:GetInfo( "adv_duplicator_load_filename" ))..".txt"
+	local filename = ply:GetInfo( "adv_duplicator_load_filename" )
+	local dir	= AdvDupe[ply].cdir
 	local newname = string.Implode(" ", args)
 	newname = dupeshare.ReplaceBadChar(dupeshare.GetFileFromFilename(newname))..".txt"
 	MsgN("s-newname= ",newname)
-	AdvDupe.FileOpts(pl, "rename", filename, dir, newname)
+	AdvDupe.FileOpts(ply, "rename", filename, dir, newname)
 
 end
 concommand.Add("adv_duplicator_fileoptsrename", FileOptsRenameCommand)
 
-function AdvDupe.FileOpts(pl, action, filename, dir, dir2)
+function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 	if not filename or not dir then return end
 
 	local file1 = dir.."/"..filename
 	MsgN("action= ",action,"  filename= ",filename,"  dir= ",dir,"  dir2= ",(dir2 or "none"))
 
-	if (!AdvDupe.CheckPerms(pl, "", dir, "access")) then return end
+	if (!AdvDupe.CheckPerms(ply, "", dir, "access")) then return end
 
-	if (action == "delete") and AdvDupe.CheckPerms(pl, "", dir, "delete") then
+	if (action == "delete") and AdvDupe.CheckPerms(ply, "", dir, "delete") then
 
 		file.Delete(dupeshare.ParsePath(file1))
-		AdvDupe.HideGhost(pl, false)
-		AdvDupe.UpdateList(pl)
+		AdvDupe.HideGhost(ply, false)
+		AdvDupe.UpdateList(ply)
 
-	elseif (action == "copy") and AdvDupe.CheckPerms(pl, "", dir2, "write") then
+	elseif (action == "copy") and AdvDupe.CheckPerms(ply, "", dir2, "write") then
 
 		local file2 = dir2.."/"..filename
 		if file.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir2, filename)
 			if dir == dir2 then
-				AdvDupe.SendClientError(pl, "Destination Same as Source, Saved File as: "..filename2)
+				AdvDupe.SendClientError(ply, "Destination Same as Source, Saved File as: "..filename2)
 			else
-				AdvDupe.SendClientError(pl, "File Exists at Destination, Saved File as: "..filename2)
+				AdvDupe.SendClientError(ply, "File Exists at Destination, Saved File as: "..filename2)
 			end
 		end
 		file.Write(dupeshare.ParsePath(file2), file.Read(dupeshare.ParsePath(file1)) or "")
-		AdvDupe.UpdateList(pl)
+		AdvDupe.UpdateList(ply)
 
-	elseif (action == "move") and AdvDupe.CheckPerms(pl, "", dir, "delete")
-							and AdvDupe.CheckPerms(pl, "", dir2, "write") then
+	elseif (action == "move") and AdvDupe.CheckPerms(ply, "", dir, "delete")
+							and AdvDupe.CheckPerms(ply, "", dir2, "write") then
 
 		if dir == dir2 then
-			AdvDupe.SendClientError(pl, "Cannot move file to same directory")
+			AdvDupe.SendClientError(ply, "Cannot move file to same directory")
 			return
 		end
 
-		AdvDupe.FileOpts(pl, "copy", filename, dir, dir2)
-		AdvDupe.FileOpts(pl, "delete", filename, dir)
+		AdvDupe.FileOpts(ply, "copy", filename, dir, dir2)
+		AdvDupe.FileOpts(ply, "delete", filename, dir)
 
-	elseif (action == "makedir") and AdvDupe.CheckPerms(pl, "", dir, "makedir") then
+	elseif (action == "makedir") and AdvDupe.CheckPerms(ply, "", dir, "makedir") then
 
 		if !SinglePlayer() and dupeshare.NamedLikeAPublicDir(filename) then
-			AdvDupe.SendClientError(pl, "You Cannot Name a Folder Like a Public Folder")
+			AdvDupe.SendClientError(ply, "You Cannot Name a Folder Like a Public Folder")
 			return
 		end
 
 		if file.Exists(file1) and file.IsDir(file1) then
-			AdvDupe.SendClientError(pl, "Folder Already Exists!")
+			AdvDupe.SendClientError(ply, "Folder Already Exists!")
 			return
 		end
 
 		file.CreateDir(dupeshare.ParsePath(file1))
-		AdvDupe.HideGhost(pl, false)
-		AdvDupe.UpdateList(pl)
+		AdvDupe.HideGhost(ply, false)
+		AdvDupe.UpdateList(ply)
 
-	elseif (action == "rename") and AdvDupe.CheckPerms(pl, "", dir, "delete")
-							and AdvDupe.CheckPerms(pl, "", dir, "write") then
+	elseif (action == "rename") and AdvDupe.CheckPerms(ply, "", dir, "delete")
+							and AdvDupe.CheckPerms(ply, "", dir, "write") then
 
-		AdvDupe.FileOpts(pl, "duplicate", filename, dir, dir2)
-		AdvDupe.FileOpts(pl, "delete", filename, dir)
+		AdvDupe.FileOpts(ply, "duplicate", filename, dir, dir2)
+		AdvDupe.FileOpts(ply, "delete", filename, dir)
 
-	elseif (action == "duplicate") and AdvDupe.CheckPerms(pl, "", dir, "write") then
+	elseif (action == "duplicate") and AdvDupe.CheckPerms(ply, "", dir, "write") then
 
 		local file2 = dir.."/"..dir2 //using dir2 to hold the new filename
 		if file.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir, dir2)
-			AdvDupe.SendClientError(pl, "File Exists With That Name Already, Renamed as: "..filename2)
+			AdvDupe.SendClientError(ply, "File Exists With That Name Already, Renamed as: "..filename2)
 		end
 		file.Write(dupeshare.ParsePath(file2), file.Read(dupeshare.ParsePath(file1)) or "")
-		AdvDupe.UpdateList(pl)
+		AdvDupe.UpdateList(ply)
 
 	else
-		AdvDupe.SendClientError(pl, "FileOpts: Bad Action Command!")
+		AdvDupe.SendClientError(ply, "FileOpts: Bad Action Command!")
 	end
 
 end
 
 //TODO
-function AdvDupe.CheckPerms(pl, dir, password, action)
+function AdvDupe.CheckPerms(ply, dir, password, action)
 
 	if (dupeshare.UsePWSys) and (!SinglePlayer()) then
 		//todo
@@ -999,7 +999,7 @@ function AdvDupe.CheckPerms(pl, dir, password, action)
 		return true
 	end
 
-	AdvDupe.SendClientError(pl, "Permission error!")
+	AdvDupe.SendClientError(ply, "Permission error!")
 end
 
 
@@ -1007,79 +1007,79 @@ end
 
 //makes the player see an error
 //todo: make enum error codes
-function AdvDupe.SendClientError(pl, errormsg, NoSound)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() or !errormsg ) then return end
-	MsgN("AdvDupe: Sending this ErrorMsg to ",tostring(pl),"\nAdvDupe-ERROR: \"",tostring(errormsg).."\"")
-	umsg.Start("AdvDupeCLError", pl)
+function AdvDupe.SendClientError(ply, errormsg, NoSound)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() or !errormsg ) then return end
+	MsgN("AdvDupe: Sending this ErrorMsg to ",tostring(ply),"\nAdvDupe-ERROR: \"",tostring(errormsg).."\"")
+	umsg.Start("AdvDupeCLError", ply)
 		umsg.String(errormsg)
 		umsg.Bool(NoSound)
 	umsg.End()
 end
-function AdvDupe.SendClientInfoMsg(pl, msg, NoSound)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() or !msg ) then return end
-	MsgN("AdvDupe, Sending This InfoMsg to ",tostring(pl),"\nAdvDupe: \"",tostring(msg).."\"")
-	umsg.Start("AdvDupeCLInfo", pl)
+function AdvDupe.SendClientInfoMsg(ply, msg, NoSound)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() or !msg ) then return end
+	MsgN("AdvDupe, Sending This InfoMsg to ",tostring(ply),"\nAdvDupe: \"",tostring(msg).."\"")
+	umsg.Start("AdvDupeCLInfo", ply)
 		umsg.String(msg)
 		umsg.Bool(NoSound)
 	umsg.End()
 end
 
-function AdvDupe.UpdateList(pl)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	local tool = AdvDupe.GetAdvDupeToolObj(pl)
+function AdvDupe.UpdateList(ply)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if (tool) then
 		tool:UpdateList()
 	end
 end
 
-function AdvDupe.HideGhost(pl, Hide)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	local tool = AdvDupe.GetAdvDupeToolObj(pl)
+function AdvDupe.HideGhost(ply, Hide)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if (tool) then
 		tool:HideGhost(Hide)
 	end
 end
-local function AdvDupe_HideGhost( pl, command, args )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
+local function AdvDupe_HideGhost( ply, command, args )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
 	if ( args[1] ) and  ( args[1] == "0" ) then
-		AdvDupe.HideGhost(pl, false)
+		AdvDupe.HideGhost(ply, false)
 	elseif ( args[1] ) and  ( args[1] == "1" ) then
-		AdvDupe.HideGhost(pl, true)
+		AdvDupe.HideGhost(ply, true)
 	end
 end
 concommand.Add( "adv_duplicator_hideghost", AdvDupe_HideGhost )
 
-function AdvDupe.SetPasting(pl, Pasting)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	AdvDupe[pl] = AdvDupe[pl] or {}
-	AdvDupe[pl].Pasting = Pasting
+function AdvDupe.SetPasting(ply, Pasting)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	AdvDupe[ply] = AdvDupe[ply] or {}
+	AdvDupe[ply].Pasting = Pasting
 
-	umsg.Start("AdvDupeSetPasting", pl)
+	umsg.Start("AdvDupeSetPasting", ply)
 		umsg.Bool(Pasting)
 	umsg.End()
 end
 
-function AdvDupe.SetPercentText( pl, Txt )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	AdvDupe[pl] = AdvDupe[pl] or {}
-	AdvDupe[pl].PercentText = Txt
-	umsg.Start("AdvDupe_Start_Percent", pl)
+function AdvDupe.SetPercentText( ply, Txt )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	AdvDupe[ply] = AdvDupe[ply] or {}
+	AdvDupe[ply].PercentText = Txt
+	umsg.Start("AdvDupe_Start_Percent", ply)
 		umsg.String(Txt)
 	umsg.End()
 end
 
-function AdvDupe.SetPercent(pl, Percent)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	umsg.Start("AdvDupe_Update_Percent", pl)
+function AdvDupe.SetPercent(ply, Percent)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	umsg.Start("AdvDupe_Update_Percent", ply)
 		umsg.Short(Percent)
 	umsg.End()
 end
 
-function AdvDupe.GetAdvDupeToolObj(pl)
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	//local tool = pl:GetActiveWeapon()
-	if ( !pl:GetActiveWeapon():GetTable().Tool ) then return end
-	local tool = pl:GetActiveWeapon():GetTable().Tool.adv_duplicator.Weapon
+function AdvDupe.GetAdvDupeToolObj(ply)
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	//local tool = ply:GetActiveWeapon()
+	if ( !ply:GetActiveWeapon():GetTable().Tool ) then return end
+	local tool = ply:GetActiveWeapon():GetTable().Tool.adv_duplicator.Weapon
 	if ( dupeshare.CurrentToolIsDuplicator(tool) ) then
 		return tool:GetTable():GetToolObject()
 	end
@@ -1122,25 +1122,25 @@ local PlayerSettings = {}
 //	admin setting function
 //
 //	uploads
-local function SendUploadSettings( pl, pieces, delay )
-	if ( pl ) and ( !pl:IsValid() or !pl:IsPlayer() ) then return end
-	umsg.Start( "AdvDupeUploadSettings", pl )
+local function SendUploadSettings( ply, pieces, delay )
+	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	umsg.Start( "AdvDupeUploadSettings", ply )
 		umsg.Short( MaxUploadLength )
 		umsg.Short( pieces )
 		umsg.Short( delay * 100 )
 	umsg.End()
 end
-local function SendMaxUploadSize( pl, Kchars )
-	if ( pl ) and ( !pl:IsValid() or !pl:IsPlayer() ) then return end
-	umsg.Start( "AdvDupeMaxUploadSize", pl )
+local function SendMaxUploadSize( ply, Kchars )
+	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	umsg.Start( "AdvDupeMaxUploadSize", ply )
 		umsg.Short( Kchars )
 	umsg.End()
 end
-local function CanUpload( pl )
-	if ( PlayerSettings[pl].MaxUploadSize >= 0 ) then return true end
+local function CanUpload( ply )
+	if ( PlayerSettings[ply].MaxUploadSize >= 0 ) then return true end
 end
-local function GetMaxUpload( pl )
-	return PlayerSettings[pl].MaxUploadSize * 1024
+local function GetMaxUpload( ply )
+	return PlayerSettings[ply].MaxUploadSize * 1024
 end
 function AdvDupe.AdminSettings.DefaultUploadSettings( len, pieces, delay, Kchars, DontUpdatePl  )
 	if ( type(len) != "number" ) or ( type(pieces) != "number" ) or ( type(delay) != "number" ) or ( type(Kchars) != "number" ) then return end
@@ -1152,46 +1152,46 @@ function AdvDupe.AdminSettings.DefaultUploadSettings( len, pieces, delay, Kchars
 	if ( delay >= 0.01 ) and ( delay <= 2 ) then UploadSendDelay = delay end
 	if ( Kchars >= -1 ) then MaxUploadSize = Kchars end
 	if ( !DontUpdatePl ) then
-		for pl,v in pairs( PlayerSettings ) do
-			PlayerSettings[pl].UploadPiecesPerSend = UploadPiecesPerSend
-			PlayerSettings[pl].UploadSendDelay = UploadSendDelay
-			PlayerSettings[pl].MaxUploadSize = MaxUploadSize
+		for ply,v in pairs( PlayerSettings ) do
+			PlayerSettings[ply].UploadPiecesPerSend = UploadPiecesPerSend
+			PlayerSettings[ply].UploadSendDelay = UploadSendDelay
+			PlayerSettings[ply].MaxUploadSize = MaxUploadSize
 		end
 		SendUploadSettings( nil, pieces, delay )
 		SendMaxUploadSize( nil, Kchars )
 	end
 end
-function AdvDupe.AdminSettings.UploadSettings( pl, pieces, delay, Kchars )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
+function AdvDupe.AdminSettings.UploadSettings( ply, pieces, delay, Kchars )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
 	if ( type(pieces) != "number" ) or ( type(delay) != "number" ) or ( type(Kchars) != "number" ) then return end
 	pieces = math.floor(pieces)
-	if ( pieces >= 1 ) then PlayerSettings[pl].UploadPiecesPerSend = pieces end
-	if ( delay >= 0.01 ) and ( delay <= 2 ) then PlayerSettings[pl].UploadSendDelay = delay end
-	SendUploadSettings( pl, pieces, delay )
-	if ( Kchars ) then AdvDupe.AdminSettings.MaxUploadSize( pl, Kchars ) end
+	if ( pieces >= 1 ) then PlayerSettings[ply].UploadPiecesPerSend = pieces end
+	if ( delay >= 0.01 ) and ( delay <= 2 ) then PlayerSettings[ply].UploadSendDelay = delay end
+	SendUploadSettings( ply, pieces, delay )
+	if ( Kchars ) then AdvDupe.AdminSettings.MaxUploadSize( ply, Kchars ) end
 end
-function AdvDupe.AdminSettings.MaxUploadSize( pl, Kchars )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
+function AdvDupe.AdminSettings.MaxUploadSize( ply, Kchars )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
 	if ( type(Kchars) != "number" ) then return end
 	Kchars = math.floor(Kchars)
 	if ( Kchars >= -1 ) then
-		PlayerSettings[pl].MaxUploadSize = Kchars
-		SendMaxUploadSize( pl, Kchars )
+		PlayerSettings[ply].MaxUploadSize = Kchars
+		SendMaxUploadSize( ply, Kchars )
 	end
 end
-function AdvDupe.AdminSettings.HaltUpload( pl )
-	umsg.Start( "AdvDupeHaltUpload", pl )
+function AdvDupe.AdminSettings.HaltUpload( ply )
+	umsg.Start( "AdvDupeHaltUpload", ply )
 	umsg.End()
 end
-function AdvDupe.RecieveFileContentStart( pl, cmd, args )
-	 AdvDupe.AdminSettings.UploadSettings( pl, tonumber(args[1]), tonumber(args[2]), tonumber(args[3] or 0) )
+function AdvDupe.RecieveFileContentStart( ply, cmd, args )
+	 AdvDupe.AdminSettings.UploadSettings( ply, tonumber(args[1]), tonumber(args[2]), tonumber(args[3] or 0) )
 end
 concommand.Add("AdvDupe_UploadSettings", AdvDupe.RecieveFileContentStart)
 //
 //	downlaods
-local function SendCanDownload( pl, candownload )
-	if ( pl ) and ( !pl:IsValid() or !pl:IsPlayer() ) then return end
-	umsg.Start( "AdvDupeCanDownload", pl )
+local function SendCanDownload( ply, candownload )
+	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	umsg.Start( "AdvDupeCanDownload", ply )
 		umsg.Bool( candownload )
 	umsg.End()
 end
@@ -1204,46 +1204,46 @@ function AdvDupe.AdminSettings.DefaultDownloadSettings( len, pieces, delay, cand
 	if ( delay >= 0.01 ) and ( delay <= 2 ) then DownloadSendInterval = delay end
 	if ( candownload ) then CanDownload = true else CanDownload = false end
 	if ( !DontUpdatePl ) then
-		for pl,v in pairs( PlayerSettings ) do
-			PlayerSettings[pl].DownloadPiecesPerSend = DownloadPiecesPerSend
-			PlayerSettings[pl].DownloadSendInterval = DownloadSendInterval
-			PlayerSettings[pl].CanDownload = CanDownload
+		for ply,v in pairs( PlayerSettings ) do
+			PlayerSettings[ply].DownloadPiecesPerSend = DownloadPiecesPerSend
+			PlayerSettings[ply].DownloadSendInterval = DownloadSendInterval
+			PlayerSettings[ply].CanDownload = CanDownload
 		end
 	end
 end
-function AdvDupe.AdminSettings.DownloadSettings( pl, pieces, delay, candownload )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
+function AdvDupe.AdminSettings.DownloadSettings( ply, pieces, delay, candownload )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
 	if ( type(pieces) != "number" ) or ( type(delay) != "number" ) then return end
 	pieces = math.floor(pieces)
-	if ( pieces >= 1 ) then PlayerSettings[pl].DownloadPiecesPerSend = pieces end
-	if ( delay >= 0.01 ) and ( delay <= 2 ) then PlayerSettings[pl].DownloadSendInterval = delay end
-	if ( candownload != nil ) then AdvDupe.AdminSettings.SetCanDownload( pl, candownload ) end
+	if ( pieces >= 1 ) then PlayerSettings[ply].DownloadPiecesPerSend = pieces end
+	if ( delay >= 0.01 ) and ( delay <= 2 ) then PlayerSettings[ply].DownloadSendInterval = delay end
+	if ( candownload != nil ) then AdvDupe.AdminSettings.SetCanDownload( ply, candownload ) end
 end
-function AdvDupe.AdminSettings.SetCanDownload( pl, candownload )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	if ( candownload ) then PlayerSettings[pl].CanDownload = true
-	else PlayerSettings[pl].CanDownload = false end
-	SendCanDownload( pl, PlayerSettings[pl].CanDownload )
+function AdvDupe.AdminSettings.SetCanDownload( ply, candownload )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( candownload ) then PlayerSettings[ply].CanDownload = true
+	else PlayerSettings[ply].CanDownload = false end
+	SendCanDownload( ply, PlayerSettings[ply].CanDownload )
 end
-local function CanDownload( pl )
-	return PlayerSettings[pl].CanDownload
+local function CanDownload( ply )
+	return PlayerSettings[ply].CanDownload
 end
 //
 //	ghost
-function AdvDupe.LimitedGhost( pl )
-	return PlayerSettings[pl].LimitedGhost
+function AdvDupe.LimitedGhost( ply )
+	return PlayerSettings[ply].LimitedGhost
 end
-function AdvDupe.GhostLimitNorm( pl )
-	return PlayerSettings[pl].GhostLimitNorm
+function AdvDupe.GhostLimitNorm( ply )
+	return PlayerSettings[ply].GhostLimitNorm
 end
-function AdvDupe.GhostLimitLimited( pl )
-	return PlayerSettings[pl].GhostLimitLimited
+function AdvDupe.GhostLimitLimited( ply )
+	return PlayerSettings[ply].GhostLimitLimited
 end
-function AdvDupe.GhostAddDelay( pl )
-	return PlayerSettings[pl].GhostAddDelay
+function AdvDupe.GhostAddDelay( ply )
+	return PlayerSettings[ply].GhostAddDelay
 end
-function AdvDupe.GhostsPerTick( pl )
-	return PlayerSettings[pl].GhostsPerTick
+function AdvDupe.GhostsPerTick( ply )
+	return PlayerSettings[ply].GhostsPerTick
 end
 function AdvDupe.AdminSettings.DefaultGhostSettings( normsize, limitsize, delay, num, limited, DontUpdatePl )
 	if ( type(normsize) != "number" ) or ( type(limitsize) != "number" ) or ( type(delay) != "number" ) or ( type(num) != "number" ) then return end
@@ -1256,63 +1256,63 @@ function AdvDupe.AdminSettings.DefaultGhostSettings( normsize, limitsize, delay,
 	if ( num > 0 ) then GhostsPerTick = num end
 	if ( limited ) then LimitedGhost = true else LimitedGhost = false end
 	if ( !DontUpdatePl ) then
-		for pl,v in pairs( PlayerSettings ) do
-			PlayerSettings[pl].GhostLimitNorm = GhostLimitNorm
-			PlayerSettings[pl].GhostLimitLimited = GhostLimitLimited
-			PlayerSettings[pl].GhostAddDelay = GhostAddDelay
-			PlayerSettings[pl].LimitedGhost = LimitedGhost
-			PlayerSettings[pl].GhostsPerTick = GhostsPerTick
+		for ply,v in pairs( PlayerSettings ) do
+			PlayerSettings[ply].GhostLimitNorm = GhostLimitNorm
+			PlayerSettings[ply].GhostLimitLimited = GhostLimitLimited
+			PlayerSettings[ply].GhostAddDelay = GhostAddDelay
+			PlayerSettings[ply].LimitedGhost = LimitedGhost
+			PlayerSettings[ply].GhostsPerTick = GhostsPerTick
 		end
 	end
 end
-function AdvDupe.AdminSettings.GhostSettings( pl, normsize, limitsize, delay, num, limited )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
+function AdvDupe.AdminSettings.GhostSettings( ply, normsize, limitsize, delay, num, limited )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
 	if ( type(normsize) != "number" ) or ( type(limitsize) != "number" ) or ( type(delay) != "number" ) or ( type(num) != "number" ) then return end
 	normsize = math.floor(normsize)
 	limitsize = math.floor(limitsize)
 	num = math.floor(num)
-	if ( normsize > 0 ) then PlayerSettings[pl].GhostLimitNorm = normsize end
-	if ( limitsize > 0 ) then PlayerSettings[pl].GhostLimitLimited = limitsize end
-	if ( delay >= 0.01 ) and ( delay <= 1 ) then PlayerSettings[pl].GhostAddDelay = delay end
-	if ( num > 0 ) then PlayerSettings[pl].GhostsPerTick = num end
-	if ( limited != nil ) then AdvDupe.AdminSettings.SetLimitedGhost( pl, limited ) end
+	if ( normsize > 0 ) then PlayerSettings[ply].GhostLimitNorm = normsize end
+	if ( limitsize > 0 ) then PlayerSettings[ply].GhostLimitLimited = limitsize end
+	if ( delay >= 0.01 ) and ( delay <= 1 ) then PlayerSettings[ply].GhostAddDelay = delay end
+	if ( num > 0 ) then PlayerSettings[ply].GhostsPerTick = num end
+	if ( limited != nil ) then AdvDupe.AdminSettings.SetLimitedGhost( ply, limited ) end
 end
-function AdvDupe.AdminSettings.SetLimitedGhost( pl, limited )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	if ( limited ) then PlayerSettings[pl].LimitedGhost = true
-	else PlayerSettings[pl].LimitedGhost = false end
+function AdvDupe.AdminSettings.SetLimitedGhost( ply, limited )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( limited ) then PlayerSettings[ply].LimitedGhost = true
+	else PlayerSettings[ply].LimitedGhost = false end
 end
 
 
 //	set defaults for player on join
-function AdvDupe.AdminSettings.SetPlayerToDefault( pl )
-	if ( !pl or !pl:IsValid() or !pl:IsPlayer() ) then return end
-	PlayerSettings[pl] = {}
+function AdvDupe.AdminSettings.SetPlayerToDefault( ply )
+	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	PlayerSettings[ply] = {}
 
 	//upload
-	/*PlayerSettings[pl].UploadPiecesPerSend = UploadPiecesPerSend
-	PlayerSettings[pl].UploadSendDelay = UploadSendDelay
-	PlayerSettings[pl].MaxUploadSize = MaxUploadSize*/
-	AdvDupe.AdminSettings.UploadSettings( pl, UploadPiecesPerSend, UploadSendDelay, MaxUploadSize )
+	/*PlayerSettings[ply].UploadPiecesPerSend = UploadPiecesPerSend
+	PlayerSettings[ply].UploadSendDelay = UploadSendDelay
+	PlayerSettings[ply].MaxUploadSize = MaxUploadSize*/
+	AdvDupe.AdminSettings.UploadSettings( ply, UploadPiecesPerSend, UploadSendDelay, MaxUploadSize )
 
 	//download
-	/*PlayerSettings[pl].DownloadPiecesPerSend = DownloadPiecesPerSend
-	PlayerSettings[pl].DownloadSendInterval = DownloadSendInterval
-	PlayerSettings[pl].CanDownload = CanDownload*/
-	AdvDupe.AdminSettings.DownloadSettings( pl, DownloadPiecesPerSend, DownloadSendInterval, CanDownload )
+	/*PlayerSettings[ply].DownloadPiecesPerSend = DownloadPiecesPerSend
+	PlayerSettings[ply].DownloadSendInterval = DownloadSendInterval
+	PlayerSettings[ply].CanDownload = CanDownload*/
+	AdvDupe.AdminSettings.DownloadSettings( ply, DownloadPiecesPerSend, DownloadSendInterval, CanDownload )
 
 	//ghost
-	/*PlayerSettings[pl].LimitedGhost = LimitedGhost
-	PlayerSettings[pl].GhostLimitNorm = GhostLimitNorm
-	PlayerSettings[pl].GhostLimitLimited = GhostLimitLimited*/
-	AdvDupe.AdminSettings.GhostSettings( pl, GhostLimitNorm, GhostLimitLimited, GhostAddDelay, GhostsPerTick, LimitedGhost )
+	/*PlayerSettings[ply].LimitedGhost = LimitedGhost
+	PlayerSettings[ply].GhostLimitNorm = GhostLimitNorm
+	PlayerSettings[ply].GhostLimitLimited = GhostLimitLimited*/
+	AdvDupe.AdminSettings.GhostSettings( ply, GhostLimitNorm, GhostLimitLimited, GhostAddDelay, GhostsPerTick, LimitedGhost )
 
-	--PrintTable(PlayerSettings[pl])
+	--PrintTable(PlayerSettings[ply])
 
 	//update client side vars too
-	/*SendUploadSettings( pl, UploadPiecesPerSend, UploadSendDelay )
-	SendMaxUploadSize( pl, MaxUploadSize )
-	SendCanDownload( pl, CanDownload )*/
+	/*SendUploadSettings( ply, UploadPiecesPerSend, UploadSendDelay )
+	SendMaxUploadSize( ply, MaxUploadSize )
+	SendCanDownload( ply, CanDownload )*/
 end
 hook.Add( "PlayerInitialSpawn", "AdvDupePlayerJoinSettings", AdvDupe.AdminSettings.SetPlayerToDefault )
 
@@ -1322,121 +1322,121 @@ hook.Add( "PlayerInitialSpawn", "AdvDupePlayerJoinSettings", AdvDupe.AdminSettin
 //
 //	Upload: Recieves file from client
 //
-function AdvDupe.RecieveFileContentStart( pl, cmd, args )
-	if ( !pl:IsValid() or !pl:IsPlayer() ) then return end
+function AdvDupe.RecieveFileContentStart( ply, cmd, args )
+	if ( !ply:IsValid() or !ply:IsPlayer() ) then return end
 
-	MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(pl:GetName() or "unknown"))
+	MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(ply:GetName() or "unknown"))
 
-	if ( !CanUpload( pl ) ) then
-		MsgN("player \"",tostring(pl),"\" not allowed to upload")
+	if ( !CanUpload( ply ) ) then
+		MsgN("player \"",tostring(ply),"\" not allowed to upload")
 		return
 	end
 
-	if (!AdvDupe[pl]) then AdvDupe[pl] = {} end
+	if (!AdvDupe[ply]) then AdvDupe[ply] = {} end
 
-	AdvDupe[pl].templast		= tonumber(args[1])
-	AdvDupe[pl].tempfile		= nil
-	if ( GetMaxUpload(pl) > 0 and (AdvDupe[pl].templast - 1) * MaxUploadLength > GetMaxUpload(pl) ) then
-		MsgN("player \"",tostring(pl),"\" is trying to upload over ",(AdvDupe[pl].templast - 1) * MaxUploadLength," then limit is ",MaxUploadSize)
-		SendMaxUploadSize( pl ) --tell the player what the max is
-		AdvDupe.AdminSettings.HaltUpload( pl )
+	AdvDupe[ply].templast		= tonumber(args[1])
+	AdvDupe[ply].tempfile		= nil
+	if ( GetMaxUpload(ply) > 0 and (AdvDupe[ply].templast - 1) * MaxUploadLength > GetMaxUpload(ply) ) then
+		MsgN("player \"",tostring(ply),"\" is trying to upload over ",(AdvDupe[ply].templast - 1) * MaxUploadLength," then limit is ",MaxUploadSize)
+		SendMaxUploadSize( ply ) --tell the player what the max is
+		AdvDupe.AdminSettings.HaltUpload( ply )
 		return
 	end
-	AdvDupe[pl].tempdir			= AdvDupe[pl].cdir //upload into curent open dir
-	AdvDupe[pl].tempfilename	= args[2]
-	AdvDupe[pl].tempnum			= 0
-	AdvDupe[pl].tempfile		= {}
-	AdvDupe[pl].compress		= (pl:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	MsgN("compress = ",AdvDupe[pl].compress)
+	AdvDupe[ply].tempdir			= AdvDupe[ply].cdir //upload into curent open dir
+	AdvDupe[ply].tempfilename	= args[2]
+	AdvDupe[ply].tempnum			= 0
+	AdvDupe[ply].tempfile		= {}
+	AdvDupe[ply].compress		= (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
+	MsgN("compress = ",AdvDupe[ply].compress)
 
-	umsg.Start("AdvDupeClientSendOK", pl)
+	umsg.Start("AdvDupeClientSendOK", ply)
 	umsg.End()
 end
 concommand.Add("DupeRecieveFileContentStart", AdvDupe.RecieveFileContentStart)
 
-function AdvDupe.RecieveFileContent( pl, cmd, args )
-	if ( !pl:IsValid() or !pl:IsPlayer() ) or ( !AdvDupe[pl].tempfile ) or (!args[1]) or (args[1] == "") then return end
+function AdvDupe.RecieveFileContent( ply, cmd, args )
+	if ( !ply:IsValid() or !ply:IsPlayer() ) or ( !AdvDupe[ply].tempfile ) or (!args[1]) or (args[1] == "") then return end
 
 	--Msg("AdvDupe: Recieving piece ")
-	AdvDupe[pl].tempnum = AdvDupe[pl].tempnum + 1
-	--Msg(args[1].." / "..AdvDupe[pl].templast.." received: "..AdvDupe[pl].tempnum.."\n")
+	AdvDupe[ply].tempnum = AdvDupe[ply].tempnum + 1
+	--Msg(args[1].." / "..AdvDupe[ply].templast.." received: "..AdvDupe[ply].tempnum.."\n")
 
-	AdvDupe[pl].tempfile[tonumber(args[1])] = args[2]
+	AdvDupe[ply].tempfile[tonumber(args[1])] = args[2]
 
-	if (AdvDupe[pl].templast == AdvDupe[pl].tempnum) then
-		AdvDupe.RecieveFileContentFinish( pl )
+	if (AdvDupe[ply].templast == AdvDupe[ply].tempnum) then
+		AdvDupe.RecieveFileContentFinish( ply )
 	end
 
 end
 concommand.Add("_DFC", AdvDupe.RecieveFileContent)
 
-function AdvDupe.RecieveFileContentFinish( pl, cmd, args )
-	if (!pl:IsValid() or !pl:IsPlayer()) or (!AdvDupe[pl].tempfile) then return end
+function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
+	if (!ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
 
-	//local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(pl), AdvDupe[pl].tempfilename )
-	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[pl].tempdir, AdvDupe[pl].tempfilename )
-	MsgN("AdvDupe: Saving ",(pl:GetName() or "unknown"),"'s recieved file to ",filepath)
-	timer.Simple( .5, AdvDupe.RecieveFileContentSave, pl, filepath )
+	//local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
+	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
+	MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
+	timer.Simple( .5, AdvDupe.RecieveFileContentSave, ply, filepath )
 end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
 
-function AdvDupe.RecieveFileContentSave( pl, filepath )
-	if (!pl:IsValid() or !pl:IsPlayer()) or (!AdvDupe[pl].tempfile) then return end
+function AdvDupe.RecieveFileContentSave( ply, filepath )
+	if (!ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
 
-	local expected = AdvDupe[pl].templast
-	local got = AdvDupe[pl].tempnum
+	local expected = AdvDupe[ply].templast
+	local got = AdvDupe[ply].tempnum
 	local FileName = dupeshare.GetFileFromFilename( filepath )
 
 	if (expected != got) then
 		//reassemble the pieces
 		local txt = "AdvDupe: Missing piece(s): "
 		for i = 1,expected do
-			if (!AdvDupe[pl].tempfile[i]) then
+			if (!AdvDupe[ply].tempfile[i]) then
 				txt = txt .. i .. ", "
 			end
 		end
 		MsgN(txt)
 
-		AdvDupe.SendClientError(pl, "ERROR: \""..FileName.."\", failed uploading", true)
-		AdvDupe.SendClientError(pl, "Server expected "..expected.." pieces but got "..got)
-		AdvDupe.SendClientInfoMsg(pl, "Try resending it.", true)
+		AdvDupe.SendClientError(ply, "ERROR: \""..FileName.."\", failed uploading", true)
+		AdvDupe.SendClientError(ply, "Server expected "..expected.." pieces but got "..got)
+		AdvDupe.SendClientInfoMsg(ply, "Try resending it.", true)
 
-		pl:PrintMessage(HUD_PRINTCONSOLE, "AdvDupeERROR: Your file, \""..FileName.."\", was not recieved properly\nAdvDupe: server expected "..expected.." pieces but got "..got)
+		ply:PrintMessage(HUD_PRINTCONSOLE, "AdvDupeERROR: Your file, \""..FileName.."\", was not recieved properly\nAdvDupe: server expected "..expected.." pieces but got "..got)
 		MsgN("AdvDupe: This file, \"",filepath,"\", was not recieved properly\nAdvDupe: expected: ",expected," pieces but got: ",got)
 
-		umsg.Start("AdvDupeClientSendFinishedFailed", pl)
+		umsg.Start("AdvDupeClientSendFinishedFailed", ply)
 		umsg.End()
 
 		return
 	end
 
 	//reassemble the pieces
-	local temp = table.concat(AdvDupe[pl].tempfile)
+	local temp = table.concat(AdvDupe[ply].tempfile)
 
 	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
 		MsgN("AdvDupe, RecieveFileContentSave: save compressed file")
-		if AdvDupe[pl].compress then
+		if AdvDupe[ply].compress then
 			temp = "[zlib_b64]"..temp
 		else
 			temp = "[zlib_b64]"..dupeshare.Compress(temp, false, true)
 		end
 	else
-		temp = dupeshare.DeCompress(temp, true, AdvDupe[pl].compress)
+		temp = dupeshare.DeCompress(temp, true, AdvDupe[ply].compress)
 	end
 
 	file.Write(dupeshare.ParsePath(filepath), temp)
 
-	AdvDupe[pl].tempfile = nil
+	AdvDupe[ply].tempfile = nil
 
-	//pl:PrintMessage(HUD_PRINTTALK, "Your file: \""..filepath.."\" was uploaded to the server")
-	AdvDupe.SendClientInfoMsg(pl, "Your file: \""..FileName.."\" was uploaded to the server")
-	pl:PrintMessage(HUD_PRINTCONSOLE, "Your file: \""..FileName.."\" was uploaded to the server")
+	//ply:PrintMessage(HUD_PRINTTALK, "Your file: \""..filepath.."\" was uploaded to the server")
+	AdvDupe.SendClientInfoMsg(ply, "Your file: \""..FileName.."\" was uploaded to the server")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "Your file: \""..FileName.."\" was uploaded to the server")
 
-	MsgN("player: \"",(pl:GetName() or "unknown"),"\" uploaded file: \"",filepath,"\"")
+	MsgN("player: \"",(ply:GetName() or "unknown"),"\" uploaded file: \"",filepath,"\"")
 
-	AdvDupe.UpdateList(pl)
+	AdvDupe.UpdateList(ply)
 
-	umsg.Start("AdvDupeClientSendFinished", pl)
+	umsg.Start("AdvDupeClientSendFinished", ply)
 	umsg.End()
 end
 
@@ -1446,20 +1446,20 @@ end
 //
 //	Download: Sends a file to the client
 //
-/*function AdvDupe.SaveAndSendSaveToClient( pl, filename, desc )
-	local filepath = AdvDupe.SaveToFile( pl, filename, desc )
-	AdvDupe.SendSaveToClient( pl, filepath )
+/*function AdvDupe.SaveAndSendSaveToClient( ply, filename, desc )
+	local filepath = AdvDupe.SaveToFile( ply, filename, desc )
+	AdvDupe.SendSaveToClient( ply, filepath )
 end*/
 
 AdvDupe.SendBuffer = {}
-function AdvDupe.SendSaveToClient( pl, filename )
-	if ( !CanDownload( pl ) ) then return end
-	if (!AdvDupe[pl]) then AdvDupe[pl] = {} end
-	if (AdvDupe.SendBuffer[pl]) then return end //then were sending already and give up
+function AdvDupe.SendSaveToClient( ply, filename )
+	if ( !CanDownload( ply ) ) then return end
+	if (!AdvDupe[ply]) then AdvDupe[ply] = {} end
+	if (AdvDupe.SendBuffer[ply]) then return end //then were sending already and give up
 
 	local filepath = filename
 	local dir = "adv_duplicator"
-	local ndir = dir.."/"..dupeshare.GetPlayerName(pl)
+	local ndir = dir.."/"..dupeshare.GetPlayerName(ply)
 
 	if !file.Exists(filepath) then //if filepath was just a file name then try to find the file, for sending from list
 		if !file.Exists(dir.."/"..filename) && !file.Exists(ndir.."/"..filename) then
@@ -1472,50 +1472,50 @@ function AdvDupe.SendSaveToClient( pl, filename )
 
 	filename = dupeshare.GetFileFromFilename(filepath)
 
-	AdvDupe.SendBuffer[pl] = file.Read(dupeshare.ParsePath(filepath)) or ""
+	AdvDupe.SendBuffer[ply] = file.Read(dupeshare.ParsePath(filepath)) or ""
 
-	local compress = (pl:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
+	local compress = (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
 	MsgN("Compress = ",compress)
 
-	AdvDupe.SendBuffer[pl] = dupeshare.Compress(AdvDupe.SendBuffer[pl], false, compress)
+	AdvDupe.SendBuffer[ply] = dupeshare.Compress(AdvDupe.SendBuffer[ply], false, compress)
 
-	if AdvDupe.SendBuffer[pl] == nil then return end
+	if AdvDupe.SendBuffer[ply] == nil then return end
 
-	local len = string.len(AdvDupe.SendBuffer[pl])
+	local len = string.len(AdvDupe.SendBuffer[ply])
 	local last = math.ceil(len / MaxDownloadLength)
 
-	umsg.Start("AdvDupeRecieveSaveStart", pl)
+	umsg.Start("AdvDupeRecieveSaveStart", ply)
 		umsg.Short(last)
 		umsg.String(filename)
 		umsg.Bool(compress)
 		//umsg.String(ndir)
 	umsg.End()
 	MsgN("AdvDupe: sending file \"",filename,".txt\" in ",tostring(last)," pieces. len: ",tostring(len))
-	//AdvDupe.SetPercentText( pl, "Downloading" )
+	//AdvDupe.SetPercentText( ply, "Downloading" )
 
-	//AdvDupe.SendSaveToClientData(pl, 1, last)
-	MsgN("send rate: ",PlayerSettings[pl].DownloadSendInterval)
-	timer.Simple( PlayerSettings[pl].DownloadSendInterval, AdvDupe.SendSaveToClientData, pl, 1, last )
+	//AdvDupe.SendSaveToClientData(ply, 1, last)
+	MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
+	timer.Simple( PlayerSettings[ply].DownloadSendInterval, AdvDupe.SendSaveToClientData, ply, 1, last )
 end
 
-function AdvDupe.SendSaveToClientData(pl, offset, last)
-	if (!pl or !pl:IsValid() or !pl:IsPlayer()) or (!AdvDupe.SendBuffer[pl]) then return end
+function AdvDupe.SendSaveToClientData(ply, offset, last)
+	if (!ply or !ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe.SendBuffer[ply]) then return end
 
-	for k=1, PlayerSettings[pl].DownloadPiecesPerSend do //sends three pieces
+	for k=1, PlayerSettings[ply].DownloadPiecesPerSend do //sends three pieces
 		--Msg("AdvDupe: sending piece: "..offset.." / "..last.."\n")
 
 		local SubStrStart = (offset - 1) * MaxDownloadLength
 		local str = ""
 		if ( offset == last ) then
-			//umsg.String(string.Right(AdvDupe[pl].temp, (len - ((last - 2) * MaxDownloadLength))))
-			str = AdvDupe.SendBuffer[pl]:sub( SubStrStart )
+			//umsg.String(string.Right(AdvDupe[ply].temp, (len - ((last - 2) * MaxDownloadLength))))
+			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart )
 			Msg("AdvDupe: send last piece\n")
 		else
-			//umsg.String(string.Right(string.Left(AdvDupe[pl].temp, ((offset + k) * MaxDownloadLength)),MaxDownloadLength))
-			str = AdvDupe.SendBuffer[pl]:sub( SubStrStart, SubStrStart + MaxDownloadLength - 1 )
+			//umsg.String(string.Right(string.Left(AdvDupe[ply].temp, ((offset + k) * MaxDownloadLength)),MaxDownloadLength))
+			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + MaxDownloadLength - 1 )
 		end
 
-		umsg.Start("AdvDupeRecieveSaveData", pl)
+		umsg.Start("AdvDupeRecieveSaveData", ply)
 			umsg.Short(offset) //cause sometimes these are reccieved out of order
 			umsg.String( str )
 		umsg.End()
@@ -1525,11 +1525,11 @@ function AdvDupe.SendSaveToClientData(pl, offset, last)
 	end
 
 	if ( offset <= last ) then
-		timer.Simple( PlayerSettings[pl].DownloadSendInterval, AdvDupe.SendSaveToClientData, pl, offset, last )
+		timer.Simple( PlayerSettings[ply].DownloadSendInterval, AdvDupe.SendSaveToClientData, ply, offset, last )
 	else
-		AdvDupe.SendBuffer[pl] = nil //clear this to send again
+		AdvDupe.SendBuffer[ply] = nil //clear this to send again
 		//inform the client they finished downloading in case they didn't notice
-		umsg.Start("AdvDupeClientDownloadFinished", pl)
+		umsg.Start("AdvDupeClientDownloadFinished", ply)
 		umsg.End()
 	end
 
@@ -1574,8 +1574,8 @@ local DontAllowPlayersAdminOnlyEnts = true
 
 //	only one of thise you need to worry about too much is SetUseTimedPasteThreshold, sets the number of ents+consts to triger using the paste over time instead
 //	leave SetPostEntityPastePerTick at the default, it doesn't do much outside of wire and life support
-local function SetTimedPasteVars(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
+local function SetTimedPasteVars(ply, cmd, args)
+	if ( args[1] ) and ( ( ply:IsAdmin() ) or ( ply:IsSuperAdmin( )() ) ) then
 		if args[1] then
 			UseTimedPasteThreshold = tonumber( args[1] )
 		end
@@ -1588,9 +1588,9 @@ local function SetTimedPasteVars(pl, cmd, args)
 		if args[4] then
 			PasteConstsPerTick = tonumber( args[4] )
 		end
-		pl:PrintMessage(HUD_PRINTCONSOLE, "\nAdvDupe_SetTimedPasteVars:\n\tUseTimedPasteThreshold = "..UseTimedPasteThreshold.."\n\tPasteEntsPerTick = "..PasteEntsPerTick.."\n\tPostEntityPastePerTick = "..PostEntityPastePerTick.."\n\tPasteConstsPerTick = "..PasteConstsPerTick.."\nDefault: 100, 2, 20, 10\n")
+		ply:PrintMessage(HUD_PRINTCONSOLE, "\nAdvDupe_SetTimedPasteVars:\n\tUseTimedPasteThreshold = "..UseTimedPasteThreshold.."\n\tPasteEntsPerTick = "..PasteEntsPerTick.."\n\tPostEntityPastePerTick = "..PostEntityPastePerTick.."\n\tPasteConstsPerTick = "..PasteConstsPerTick.."\nDefault: 100, 2, 20, 10\n")
 	else
-		pl:PrintMessage(HUD_PRINTCONSOLE, "Usage: \n  AdvDupe_SetTimedPasteVars <UseTimedPasteThreshold> [PasteEntsPerTick] [PostEntityPastePerTick] [PasteConstsPerTick]\nDefault: 100, 2, 20, 10\n")
+		ply:PrintMessage(HUD_PRINTCONSOLE, "Usage: \n  AdvDupe_SetTimedPasteVars <UseTimedPasteThreshold> [PasteEntsPerTick] [PostEntityPastePerTick] [PasteConstsPerTick]\nDefault: 100, 2, 20, 10\n")
 	end
 end
 concommand.Add( "AdvDupe_SetTimedPasteVars", SetTimedPasteVars )
@@ -1606,39 +1606,39 @@ function AdvDupe.AdminSettings.SetPostEntityPastePerTick( a ) if ( a and type( a
 function AdvDupe.AdminSettings.SetPasteConstsPerTick( a ) if ( a and type( a ) == "number" ) then PasteConstsPerTick = a end end
 
 //PasterInstantPasteThreshold
-local function SetPasterInstantPasteThreshold(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
+local function SetPasterInstantPasteThreshold(ply, cmd, args)
+	if ( args[1] ) and ( ( ply:IsAdmin() ) or ( ply:IsSuperAdmin( )() ) ) then
 		PasterInstantPasteThreshold = tonumber( args[1] )
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nPasterInstantPasteThreshold = "..PasterInstantPasteThreshold.." (Default: 50)\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\nPasterInstantPasteThreshold = "..PasterInstantPasteThreshold.." (Default: 50)\n")
 end
 concommand.Add( "AdvDupe_SetPasterInstantPasteThreshold", SetPasterInstantPasteThreshold )
 function AdvDupe.AdminSettings.SetPasterInstantPasteThreshold( a ) if ( a and type( a ) == "number" ) then PasterInstantPasteThreshold = a end end
 
 //PasterClearToPasteDelay
-local function SetPasterClearToPasteDelay(pl, cmd, args)
-	if ( args[1] ) and ( ( pl:IsAdmin() ) or ( pl:IsSuperAdmin( )() ) ) then
+local function SetPasterClearToPasteDelay(ply, cmd, args)
+	if ( args[1] ) and ( ( ply:IsAdmin() ) or ( ply:IsSuperAdmin( )() ) ) then
 		PasterClearToPasteDelay = tonumber( args[1] )
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\nPasterClearToPasteDelay = "..PasterClearToPasteDelay.." (Default: 3)\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\nPasterClearToPasteDelay = "..PasterClearToPasteDelay.." (Default: 3)\n")
 end
 concommand.Add( "AdvDupe_SetPasterClearToPasteDelay", SetPasterClearToPasteDelay )
 function AdvDupe.AdminSettings.SetPasterClearToPasteDelay( a ) if ( a and type( a ) == "number" ) then PasterClearToPasteDelay = a end end
 
 
 //	TaskSwitchingPaste makes the paste system built on each thinger by switching to the next one each tick instead of finishing the first placed one first
-local function SetUseTaskSwitchingPaste(pl, cmd, args)
-	if ( !pl:IsAdmin() and !pl:IsSuperAdmin( )() ) then return end
+local function SetUseTaskSwitchingPaste(ply, cmd, args)
+	if ( !ply:IsAdmin() and !ply:IsSuperAdmin( )() ) then return end
 	if ( args[1] ) then
 		if args[1] == "1" or args[1] == 1 then
 			UseTaskSwitchingPaste = true
 		elseif args[1] == "0" or args[1] == 0 then
 			UseTaskSwitchingPaste = false
 		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
+			ply:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
 		end
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_UseTaskSwitchingPaste = "..tostring(UseTaskSwitchingPaste).."  ( norm: False(0) )\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_UseTaskSwitchingPaste = "..tostring(UseTaskSwitchingPaste).."  ( norm: False(0) )\n")
 end
 concommand.Add( "AdvDupe_UseTaskSwitchingPaste", SetUseTaskSwitchingPaste )
 function AdvDupe.AdminSettings.SetUseTaskSwitchingPaste( a )
@@ -1650,18 +1650,18 @@ function AdvDupe.AdminSettings.SetUseTaskSwitchingPaste( a )
 end
 
 //	DoPasteFX turns back on the cool pasting effects. works best when paste over time is slowed down a bit
-local function SetDoPasteFX(pl, cmd, args)
-	if ( !pl:IsAdmin() and !pl:IsSuperAdmin( )() ) then return end
+local function SetDoPasteFX(ply, cmd, args)
+	if ( !ply:IsAdmin() and !ply:IsSuperAdmin( )() ) then return end
 	if ( args[1] ) then
 		if args[1] == "1" or args[1] == 1 then
 			DoPasteFX = true
 		elseif args[1] == "0" or args[1] == 0 then
 			DoPasteFX = false
 		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
+			ply:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
 		end
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DoPasteFX = "..tostring(DoPasteFX).."  ( norm: False(0) )\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DoPasteFX = "..tostring(DoPasteFX).."  ( norm: False(0) )\n")
 end
 concommand.Add( "AdvDupe_DoPasteFX", SetDoPasteFX )
 function AdvDupe.AdminSettings.SetDoPasteFX( a )
@@ -1673,18 +1673,18 @@ function AdvDupe.AdminSettings.SetDoPasteFX( a )
 end
 
 //	DebugWeldsByDrawingThem makes a beam where ever there a weld is made
-local function SetDebugWeldsByDrawingThem(pl, cmd, args)
-	if ( !pl:IsAdmin() and !pl:IsSuperAdmin( )() ) then return end
+local function SetDebugWeldsByDrawingThem(ply, cmd, args)
+	if ( !ply:IsAdmin() and !ply:IsSuperAdmin( )() ) then return end
 	if ( args[1] ) then
 		if args[1] == "1" or args[1] == 1 then
 			DebugWeldsByDrawingThem = true
 		elseif args[1] == "0" or args[1] == 0 then
 			DebugWeldsByDrawingThem = false
 		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
+			ply:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
 		end
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DebugWeldsByDrawingThem = "..tostring(DebugWeldsByDrawingThem).."  ( norm: False(0) )\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DebugWeldsByDrawingThem = "..tostring(DebugWeldsByDrawingThem).."  ( norm: False(0) )\n")
 end
 concommand.Add( "AdvDupe_DebugWeldsByDrawingThem", SetDebugWeldsByDrawingThem )
 function AdvDupe.AdminSettings.SetDebugWeldsByDrawingThem( a )
@@ -1696,18 +1696,18 @@ function AdvDupe.AdminSettings.SetDebugWeldsByDrawingThem( a )
 end
 
 //	DontAllowPlayersAdminOnlyEnts, allows you to turn off the admin only ents protection
-local function SetDontAllowPlayersAdminOnlyEnts(pl, cmd, args)
-	if ( !pl:IsAdmin() and !pl:IsSuperAdmin( )() ) then return end
+local function SetDontAllowPlayersAdminOnlyEnts(ply, cmd, args)
+	if ( !ply:IsAdmin() and !ply:IsSuperAdmin( )() ) then return end
 	if ( args[1] ) then
 		if args[1] == "1" or args[1] == 1 then
 			DontAllowPlayersAdminOnlyEnts = true
 		elseif args[1] == "0" or args[1] == 0 then
 			DontAllowPlayersAdminOnlyEnts = false
 		else
-			pl:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
+			ply:PrintMessage(HUD_PRINTCONSOLE, "Only takes 0 or 1")
 		end
 	end
-	pl:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DontAllowPlayersAdminOnlyEnts = "..tostring(DontAllowPlayersAdminOnlyEnts).."  ( norm: True(1) )\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "\n  AdvDupe_DontAllowPlayersAdminOnlyEnts = "..tostring(DontAllowPlayersAdminOnlyEnts).."  ( norm: True(1) )\n")
 end
 concommand.Add( "AdvDupe_DontAllowPlayersAdminOnlyEnts", SetDontAllowPlayersAdminOnlyEnts )
 function AdvDupe.AdminSettings.SetDontAllowPlayersAdminOnlyEnts( a )
@@ -1839,12 +1839,12 @@ hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
 //	ReAddAdvDupeThink readds the hook when it dies, this is done automaticly when a new paste is started
 local function ReAddAdvDupeThink( ply, cmd, args )
 	hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
-	pl:PrintMessage(HUD_PRINTCONSOLE, "ReAdded AdvDupe_Think Hook\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "ReAdded AdvDupe_Think Hook\n")
 end
 concommand.Add( "AdvDupe_ReAdd_Think", ReAddAdvDupeThink )
 //	RestartAdvDupeThink clears all current pasting and restarts the hook, good to clear a paste that keeps bailing the hook each time it tries to run
 local function RestartAdvDupeThink( ply, cmd, args )
-	if ( !pl:IsAdmin() and !pl:IsSuperAdmin( )() ) then return end
+	if ( !ply:IsAdmin() and !ply:IsSuperAdmin( )() ) then return end
 	hook.Remove("Think", "AdvDupe_Think", AdvDupeThink)
 	TimedPasteDataNum = 0
 	TimedPasteDataCurrent = 1
@@ -1860,7 +1860,7 @@ local function RestartAdvDupeThink( ply, cmd, args )
 
 	hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
 
-	pl:PrintMessage(HUD_PRINTCONSOLE, "Restarted AdvDupe_Think Hook\n")
+	ply:PrintMessage(HUD_PRINTCONSOLE, "Restarted AdvDupe_Think Hook\n")
 end
 concommand.Add( "AdvDupe_Restart_Think", RestartAdvDupeThink )
 
@@ -2773,13 +2773,13 @@ function AdvDupe.ApplyParenting( Ent, EntID, EntityList, CreatedEntities )
 
 end
 
-function AdvDupe.FreezeEntity( pl, Ent, AddToFrozenList )
+function AdvDupe.FreezeEntity( ply, Ent, AddToFrozenList )
 	for Bone = 0, Ent:GetPhysicsObjectCount() do
 		local Phys = Ent:GetPhysicsObjectNum( Bone )
 		if ( Phys and Phys:IsValid() ) then
 			Phys:EnableMotion( false )
 			if ( AddToFrozenList ) then
-				pl:AddFrozenPhysicsObject( Ent, Phys )
+				ply:AddFrozenPhysicsObject( Ent, Phys )
 			end
 		end
 	end
@@ -3151,9 +3151,9 @@ function AdvDupe.OldMakeProp( ply, Pos, Ang, Model, Vel, aVel, frozen )
 end
 
 // Legacy prop phyics function
-function AdvDupe.OldMakeWheel( pl, Pos, Ang, Model, Vel, aVel, frozen, key_f, key_r )
+function AdvDupe.OldMakeWheel( ply, Pos, Ang, Model, Vel, aVel, frozen, key_f, key_r )
 
-	if ( !pl:CheckLimit( "wheels" ) ) then return false end
+	if ( !ply:CheckLimit( "wheels" ) ) then return false end
 
 	local wheel = ents.Create( "gmod_wheel" )
 	if ( !wheel:IsValid() ) then return end
@@ -3163,7 +3163,7 @@ function AdvDupe.OldMakeWheel( pl, Pos, Ang, Model, Vel, aVel, frozen, key_f, ke
 	wheel:SetAngles( Ang )
 	wheel:Spawn()
 
-	wheel:GetTable():SetPlayer( pl )
+	wheel:GetTable():SetPlayer( ply )
 
 	if ( wheel:GetPhysicsObject():IsValid() ) then
 
@@ -3181,12 +3181,12 @@ function AdvDupe.OldMakeWheel( pl, Pos, Ang, Model, Vel, aVel, frozen, key_f, ke
 	wheel:GetTable().KeyBinds = {}
 
 	// Bind to keypad
-	wheel:GetTable().KeyBinds[1] = numpad.OnDown( 	pl, 	key_f, 	"WheelForward", 	wheel, 	true )
-	wheel:GetTable().KeyBinds[2] = numpad.OnUp( 	pl, 	key_f, 	"WheelForward", 	wheel, 	false )
-	wheel:GetTable().KeyBinds[3] = numpad.OnDown( 	pl, 	key_r, 	"WheelReverse", 	wheel, 	true )
-	wheel:GetTable().KeyBinds[4] = numpad.OnUp( 	pl, 	key_r, 	"WheelReverse", 	wheel, 	false )
+	wheel:GetTable().KeyBinds[1] = numpad.OnDown( 	ply, 	key_f, 	"WheelForward", 	wheel, 	true )
+	wheel:GetTable().KeyBinds[2] = numpad.OnUp( 	ply, 	key_f, 	"WheelForward", 	wheel, 	false )
+	wheel:GetTable().KeyBinds[3] = numpad.OnDown( 	ply, 	key_r, 	"WheelReverse", 	wheel, 	true )
+	wheel:GetTable().KeyBinds[4] = numpad.OnUp( 	ply, 	key_r, 	"WheelReverse", 	wheel, 	false )
 
-	pl:AddCount( "wheels", wheel )
+	ply:AddCount( "wheels", wheel )
 
 	return wheel
 
@@ -3230,7 +3230,7 @@ AdvDupe.OldEntityModifiers.colour.Args = {"r","g","b","a", "mode", "fx"}
 AdvDupe.OldEntityModifiers.material = {}
 AdvDupe.OldEntityModifiers.material.Args = {"mat"}
 //AdvDupe.OldSetColour
-function AdvDupe.OldEntityModifiers.colour.Func( pl, Entity, r,g,b,a, mode, fx )
+function AdvDupe.OldEntityModifiers.colour.Func( ply, Entity, r,g,b,a, mode, fx )
 
 	Entity:SetColor( r,g,b, a )
 	Entity:SetRenderMode(mode)
@@ -3246,7 +3246,7 @@ function AdvDupe.OldEntityModifiers.colour.Func( pl, Entity, r,g,b,a, mode, fx )
 	return true
 end
 //AdvDupe.OldSetMaterial
-function AdvDupe.OldEntityModifiers.material.Func( pl, Entity, mat )
+function AdvDupe.OldEntityModifiers.material.Func( ply, Entity, mat )
 
 	if (!mat) then return end
 	if (!Entity || !Entity:IsValid()) then return end
@@ -3260,7 +3260,7 @@ function AdvDupe.OldEntityModifiers.material.Func( pl, Entity, mat )
 end
 
 //the data table uses the old names instead
-function AdvDupe.OldSetPhysProp( pl, ent, BoneID, Bone, Data )
+function AdvDupe.OldSetPhysProp( ply, ent, BoneID, Bone, Data )
 
 		if ( !Bone ) then
 			Bone = Entity:GetPhysicsObjectNum( BoneID )
