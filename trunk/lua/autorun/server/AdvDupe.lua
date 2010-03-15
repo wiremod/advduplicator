@@ -2607,6 +2607,12 @@ function AdvDupe.CreateEntityFromTable( Player, EntTable, ID, Offset, HoldAngle 
 	local ok, Result
 	if ( EntTable.Class == "prop_physics" ) then
 		ok, Result = pcall( AdvDupe.MakeProp, Player, unpack(EntTable.arglist) )
+	elseif ( EntTable.Class == "gmod_thruster" ) then -- Adds missing sound information to old dupes.
+		if ( EntTable.arglist[10] == false and EntTable.arglist[11] == true ) then
+			EntTable.arglist[10] = ""
+			EntTable.arglist[11] = false
+		end
+		ok, Result = pcall( EntityClass.Func, Player, unpack(EntTable.arglist) )
 	else
 		ok, Result = pcall( EntityClass.Func, Player, unpack(EntTable.arglist) )
 	end
