@@ -2430,6 +2430,10 @@ end
 //	Clean Up
 //
 function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
+
+	-- This hook is for E2's dupefinished function
+	hook.Call("AdvDupe_FinishPasting",AdvDupe,TimedPasteData,TimedPasteDataCurrent)
+
 	if ( !TimedPasteData[TimedPasteDataCurrent].DontRemoveThinger ) then
 		if ( TimedPasteData[TimedPasteDataCurrent].Shooting_Ent.Entity ) then
 			TimedPasteData[TimedPasteDataCurrent].Shooting_Ent.Entity:Remove()
