@@ -14,7 +14,7 @@ elseif (Serialiser) and (Serialiser.Version) and (Serialiser.Version == ThisVers
 	Msg("======== The Same Version of Table (De)Serialiser Module Detected || Skipping ========\n")
 	return
 elseif (Serialiser) and (Serialiser.Version) then
-	Msg("======== Am Older Version of Table (De)Serialiser Module Detected ========\n")
+	Msg("======== An Older Version of Table (De)Serialiser Module Detected ========\n")
 	Msg("======== This ver: "..ThisVersion.." || Detected ver: "..Serialiser.Version.." || Overriding\n")
 else
 	Msg("======== Installing Table (De)Serialiser Module | ver: "..ThisVersion.." ========\n")
