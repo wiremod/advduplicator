@@ -23,7 +23,7 @@ if CLIENT then
 
 	local function initplayer(um)
 		dupeshare.ZLib_Installed_SV = um:ReadBool()
-		MsgN("AdvDupeShared: Server Compression: ",dupeshare.ZLib_Installed_SV)
+		--MsgN("AdvDupeShared: Server Compression: ",dupeshare.ZLib_Installed_SV)
 	end
 	usermessage.Hook( "adsh_initplayer", initplayer )
 elseif SERVER then
@@ -166,7 +166,7 @@ function dupeshare.Compress(str, ForConCommand, usezlib)
 	if usezlib and dupeshare.ZLib_Installed then
 
 		if ( str:sub(1,10) == "[zlib_b64]" ) then
-			MsgN("dupeshare.Compress file compressed already")
+			--MsgN("dupeshare.Compress file compressed already")
 			str = str:sub(11)
 		else
 			str = zlib.Compress(str, 9):Encode()
@@ -178,7 +178,7 @@ function dupeshare.Compress(str, ForConCommand, usezlib)
 				ErrorNoHalt("zlib_b64 not installed, cannot uncompresse file\n")
 				return
 			end
-			MsgN("dupeshare.Compress uncompressed file")
+			--MsgN("dupeshare.Compress uncompressed file")
 			str = dupeshare.DeCompress(str:sub(11), false, true)
 		end
 
@@ -196,8 +196,8 @@ function dupeshare.Compress(str, ForConCommand, usezlib)
 		end
 	end
 
-	local afterlen = string.len(str)
-	MsgN("String Compressed: ",afterlen," / ",beforelen," ( ",(math.Round((afterlen / beforelen) * 10000) / 100),"% )")
+	--local afterlen = string.len(str)
+	--MsgN("String Compressed: ",afterlen," / ",beforelen," ( ",(math.Round((afterlen / beforelen) * 10000) / 100),"% )")
 
 	return str
 end
@@ -223,8 +223,8 @@ function dupeshare.DeCompress(str, FormConCommand, usezlib)
 		end
 	end
 
-	local beforelen = string.len(str)
-	MsgN("String Decompressed: ",afterlen," / ",beforelen," ( ",(math.Round((afterlen / beforelen) * 10000) / 100),"% )")
+	--local beforelen = string.len(str)
+	--MsgN("String Decompressed: ",afterlen," / ",beforelen," ( ",(math.Round((afterlen / beforelen) * 10000) / 100),"% )")
 
 	return str
 end
@@ -497,5 +497,5 @@ end
 
 
 
-Msg("==== Advanced Duplicator v."..dupeshare.Version.." shared module installed! ====\n")
+--Msg("==== Advanced Duplicator v."..dupeshare.Version.." shared module installed! ====\n")
 if (!duplicator.EntityClasses) then Msg("=== Error: Your gmod is out of date! ===\n=== You'll want to fix that or the Advanced Duplicator is not going to work. ===\n") end
