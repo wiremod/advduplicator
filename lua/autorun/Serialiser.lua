@@ -16,9 +16,10 @@ elseif (Serialiser) and (Serialiser.Version) and (Serialiser.Version == ThisVers
 elseif (Serialiser) and (Serialiser.Version) then
 	Msg("======== An Older Version of Table (De)Serialiser Module Detected ========\n")
 	Msg("======== This ver: "..ThisVersion.." || Detected ver: "..Serialiser.Version.." || Overriding\n")
-else
-	Msg("======== Installing Table (De)Serialiser Module | ver: "..ThisVersion.." ========\n")
 end
+--[[ else --we don't need to tell everyone that it loaded succesfully. If it loads successfully nothing should print
+	Msg("======== Installing Table (De)Serialiser Module | ver: "..ThisVersion.." ========\n")
+end ]]
 
 Serialiser = {}
 Serialiser.Version = ThisVersion
@@ -256,7 +257,7 @@ function Serialiser.DeserialiseWithHeaders( InData, CallBack, pl, filepath, tool
 			ErrorNoHalt("zlib_b64 not installed, cannot open compressed file: ",filepath)
 			return
 		end
-		MsgN("Serialiser open compressed file")
+		--MsgN("Serialiser open compressed file")
 		InData = dupeshare.DeCompress(InData:sub(11), false, true)
 	end
 
@@ -345,7 +346,7 @@ function Serialiser.DeserialiseWithHeaders( InData, CallBack, pl, filepath, tool
 
 						for k,line in pairs(string.Explode("\n", DataBlock)) do
 							local key,block = line:match("(.-):(.+)")
-							Msg("DeserialiseBlock "..key.."\n")
+							--Msg("DeserialiseBlock "..key.."\n")
 
 							local function DWH4(block, StrTbl, OutputTable, k)
 								AdvDupe.SetPercent(pl, 60 + (k * 10) )
@@ -414,17 +415,17 @@ function Serialiser.SaveTablesToFile( pl, FileName, Header, ExtraHeader, NumOfEn
 	StrTbl.LastIndx = 0 --the index last used
 	StrTbl.Saved = 0 --number of strings we didn't have to save
 
-	Msg("save0\n")
+	--Msg("save0\n")
 	local function save1( pl, FileName, Header, ExtraHeader, NumOfEnts, EntTables, NumOfConst, ConstsTable, StrTbl, dontpoolstrings )
-		Msg("save1\n")
+		--Msg("save1\n")
 		local EntsStr = Serialiser.SingleTable( EntTables, StrTbl, dontpoolstrings )
 
 		local function save2( pl, FileName, Header, ExtraHeader, EntsStr, NumOfConst, ConstsTable, StrTbl, dontpoolstrings )
-			Msg("save2\n")
+			--Msg("save2\n")
 			local ConstsStr = Serialiser.SingleTable( ConstsTable, StrTbl, dontpoolstrings )
 
 			local function save3( pl, FileName, Header, ExtraHeader, EntsStr, ConstsStr, StrTbl )
-				Msg("save3\n")
+				--Msg("save3\n")
 				//	save dict
 				local Dict = {}
 				for idx,cstr in pairs(StrTbl.Strings) do
@@ -433,7 +434,7 @@ function Serialiser.SaveTablesToFile( pl, FileName, Header, ExtraHeader, NumOfEn
 				local DictStr = table.concat( Dict, "\n" ) .. "\nSaved:" .. StrTbl.Saved
 
 				local function save4( pl, FileName, Header, ExtraHeader, EntsStr, ConstsStr, DictStr )
-					Msg("save4\n")
+					--Msg("save4\n")
 					local output = table.concat(
 						{
 							"[Info]",
@@ -452,7 +453,7 @@ function Serialiser.SaveTablesToFile( pl, FileName, Header, ExtraHeader, NumOfEn
 						if !dupeshare.ZLib_Installed then
 							ErrorNoHalt("zlib_b64 not installed, cannot compresse file: ",filepath)
 						else
-							MsgN("Serialiser save compressed file")
+							--MsgN("Serialiser save compressed file")
 							output = "[zlib_b64]"..dupeshare.Compress(output, false, true)
 						end
 					end

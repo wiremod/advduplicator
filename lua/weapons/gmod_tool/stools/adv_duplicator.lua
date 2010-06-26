@@ -66,7 +66,7 @@ function TOOL:LeftClick( trace )
 	if self.Legacy then
 
 		--paste using legacy data
-		Msg("===doing old paste===\n")
+		--Msg("===doing old paste===\n")
 		Ents, Constraints = AdvDupe.OldPaste( self:GetOwner(), self.Entities, self.Constraints, self.DupeInfo, self.DORInfo, self.HeadEntityIdx, trace.HitPos )
 
 	else
@@ -762,7 +762,7 @@ function TOOL:UpdateList()
 
 	local cdir = AdvDupe[self:GetOwner()].cdir
 
-	Msg("cdir= "..cdir.."\n")
+	--Msg("cdir= "..cdir.."\n")
  	self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs={}" )
 	self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles={}" )
 	self:GetOwner():SendLua( "AdvDupeClient.SScdir=\""..cdir.."\"" )
