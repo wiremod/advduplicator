@@ -59,7 +59,7 @@ local function SendSaveDataToServer(offset, last)
 			if (offset == last) then
 				str = AdvDupeClient.temp2:sub( SubStrStart )
 
-				Msg("sending last string\n")
+				--Msg("sending last string\n")
 				AdvDupeClient.UpdatePercent( 100 )
 				timer.Simple(.2, AdvDupeClient.UpdatePercent, -1)
 			else
@@ -172,7 +172,7 @@ local function ClientRecieveSaveStart( um )
 	AdvDupeClient.downloading = true
 	AdvDuplicator_UpdateControlPanel()
 
-	Msg("AdvDupeClient: Clear to recieve file \""..RecieveBuffer.filename.."\" in "..RecieveBuffer.numofpieces.." pieces\n")
+	--Msg("AdvDupeClient: Clear to recieve file \""..RecieveBuffer.filename.."\" in "..RecieveBuffer.numofpieces.." pieces\n")
 	--Msg("NumToRecieve= "..AdvDupeClient.temp.numofpieces.."\n==========\n")
 	AdvDupeClient.SetPercentText( "Downloading" )
 end
@@ -191,7 +191,7 @@ local function ClientRecieveSaveData( um )
 	RecieveBuffer.pieces[piece] = temp
 
 	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
-		MsgN("recieved last piece")
+		--MsgN("recieved last piece")
 		AdvDupeClient.UpdatePercent( 100 )
 		timer.Simple(.5, AdvDupeClient.UpdatePercent, -1)
 		AdvDupeClient.ClientSaveRecievedFile()
@@ -207,7 +207,7 @@ function AdvDupeClient.ClientSaveRecievedFile()
 	local temp = table.concat(RecieveBuffer.pieces)
 
 	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
-		MsgN("AdvDupe, ClientSaveRecievedFile: save compressed file")
+		--MsgN("AdvDupe, ClientSaveRecievedFile: save compressed file")
 		if RecieveBuffer.compress then
 			temp = "[zlib_b64]"..temp
 		else
@@ -254,7 +254,7 @@ function AdvDupeClient.FileOpts(action, filename, dir, dir2)
 	if ( !action ) or ( !filename ) or ( !dir ) then return end
 
 	local file1 = dir.."/"..filename
-	Msg("action= "..action.."  filename= "..filename.."  dir= "..dir.."  dir2= "..(dir2 or "none").."\n")
+	--Msg("action= "..action.."  filename= "..filename.."  dir= "..dir.."  dir2= "..(dir2 or "none").."\n")
 
 	if (action == "delete") then
 
@@ -740,5 +740,5 @@ end
 concommand.Add( "adv_duplicator_confirmdelete_gui", AdvDupeClient.ConfirmDelete )
 
 
-Msg("==== Advanced Duplicator v."..AdvDupeClient.version.." client module installed! ====\n")
+--Msg("==== Advanced Duplicator v."..AdvDupeClient.version.." client module installed! ====\n")
 

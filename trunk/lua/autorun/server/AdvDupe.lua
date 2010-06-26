@@ -104,7 +104,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 			local function Load2NewFile(ply, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
 				if ( HeaderTbl.Type ) and ( HeaderTbl.Type == "AdvDupe File" ) then
 
-					MsgN("AdvDupe:Loaded new file ",filepath,"  version: ",ExtraHeaderTbl.FileVersion)
+					--MsgN("AdvDupe:Loaded new file ",filepath,"  version: ",ExtraHeaderTbl.FileVersion)
 
 					ExtraHeaderTbl.FileVersion = tonumber(ExtraHeaderTbl.FileVersion)
 
@@ -169,7 +169,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 
 				elseif ( HeaderTbl.Type ) and ( HeaderTbl.Type == "Contraption Saver File" ) then
 
-					MsgN("AdvDupe:Loaded Contraption Saver file ",filepath,"  version: ",ExtraHeaderTbl.Version)
+					--MsgN("AdvDupe:Loaded Contraption Saver file ",filepath,"  version: ",ExtraHeaderTbl.Version)
 
 					/*for k,v in pairs(Data.Entities) do
 						v.LocalPos.z = v.LocalPos.z + Data.Height + 8
@@ -201,7 +201,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 					)
 
 				elseif (Data.Information) then
-					MsgN("AdvDupe:Loaded old Contraption Saver file version ",Data.Information.Version)
+					--MsgN("AdvDupe:Loaded old Contraption Saver file version ",Data.Information.Version)
 
 					//find the lowest and use that as the head
 					local head,low
@@ -261,15 +261,15 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 		temp = util.KeyValuesToTable(temp)
 
 		if ( temp["VersionInfo"] or temp["versioninfo"] ) then //pre-0.6x file, it ueses a different meathod os stroing FullCase
-			Msg("AdvDipe: Loading old legacy file type\n")
+			--Msg("AdvDipe: Loading old legacy file type\n")
 			temp = dupeshare.RebuildTableFromLoad_Old(temp)
 		elseif ( temp["strtbl"] ) then // v0.7x
-			Msg("AdvDipe: Loading v0.7x file type\n")
+			--Msg("AdvDipe: Loading v0.7x file type\n")
 			local StrTbl = temp["strtbl"]
 			temp["strtbl"] = nil
 			temp = dupeshare.RebuildTableFromLoad(temp, {}, StrTbl)
 		else //0.6x
-			Msg("AdvDipe: Loading v0.6x file type\n")
+			--Msg("AdvDipe: Loading v0.6x file type\n")
 			temp = dupeshare.RebuildTableFromLoad(temp)
 		end
 
@@ -280,7 +280,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 		local function Load3(ply, filepath, tool, temp)
 			//check the file was loaded and we understand it's version then load the data in to the tables
 			if (temp) and (temp["VersionInfo"]) and (temp["VersionInfo"]["FileVersion"] >= 0.6) then
-				MsgN("AdvDupe:Loaded old file ",filepath,"  version: ",temp.VersionInfo.FileVersion)
+				--MsgN("AdvDupe:Loaded old file ",filepath,"  version: ",temp.VersionInfo.FileVersion)
 
 				tool:LoadFileCallBack( filepath,
 					temp.EntTables, temp.ConstraintTables, {},{},
@@ -297,7 +297,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 
 			//Legacy versions, there are no version 0.5 files
 			elseif (temp) and (temp["VersionInfo"]) and (temp["VersionInfo"]["FileVersion"] <= 0.4) then
-				MsgN("AdvDupe:Loaded old legacy file ",filepath,"  version: ",temp.VersionInfo.FileVersion)
+				--MsgN("AdvDupe:Loaded old legacy file ",filepath,"  version: ",temp.VersionInfo.FileVersion)
 
 				if (temp["VersionInfo"]["FileVersion"] <= 0.2) then
 					temp.DupeInfo = {}
@@ -323,7 +323,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 				temp.VersionInfo.FileVersion*/
 
 			elseif (temp) and (temp["Information"]) then //Old Contrpation Saver File
-				Msg("AdvDupe:Loading old Contraption Saver file.\n")
+				--Msg("AdvDupe:Loading old Contraption Saver file.\n")
 
 				//find the lowest and use that as the head
 				local head,low
@@ -896,7 +896,7 @@ end
 concommand.Add("adv_duplicator_fileopts", FileOptsCommand)
 
 local function FileOptsRenameCommand(ply, cmd, args)
-	Msg("rename cmd\n")
+	--Msg("rename cmd\n")
 	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
 
 	//local filename = dupeshare.GetFileFromFilename(ply:GetInfo( "adv_duplicator_load_filename" ))..".txt"
@@ -904,7 +904,7 @@ local function FileOptsRenameCommand(ply, cmd, args)
 	local dir	= AdvDupe[ply].cdir
 	local newname = string.Implode(" ", args)
 	newname = dupeshare.ReplaceBadChar(dupeshare.GetFileFromFilename(newname))..".txt"
-	MsgN("s-newname= ",newname)
+	--MsgN("s-newname= ",newname)
 	AdvDupe.FileOpts(ply, "rename", filename, dir, newname)
 
 end
@@ -914,7 +914,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 	if not filename or not dir then return end
 
 	local file1 = dir.."/"..filename
-	MsgN("action= ",action,"  filename= ",filename,"  dir= ",dir,"  dir2= ",(dir2 or "none"))
+	--MsgN("action= ",action,"  filename= ",filename,"  dir= ",dir,"  dir2= ",(dir2 or "none"))
 
 	if (!AdvDupe.CheckPerms(ply, "", dir, "access")) then return end
 
@@ -1325,7 +1325,7 @@ hook.Add( "PlayerInitialSpawn", "AdvDupePlayerJoinSettings", AdvDupe.AdminSettin
 function AdvDupe.RecieveFileContentStart( ply, cmd, args )
 	if ( !ply:IsValid() or !ply:IsPlayer() ) then return end
 
-	MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(ply:GetName() or "unknown"))
+	--MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(ply:GetName() or "unknown"))
 
 	if ( !CanUpload( ply ) ) then
 		MsgN("player \"",tostring(ply),"\" not allowed to upload")
@@ -1347,7 +1347,7 @@ function AdvDupe.RecieveFileContentStart( ply, cmd, args )
 	AdvDupe[ply].tempnum			= 0
 	AdvDupe[ply].tempfile		= {}
 	AdvDupe[ply].compress		= (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	MsgN("compress = ",AdvDupe[ply].compress)
+	--MsgN("compress = ",AdvDupe[ply].compress)
 
 	umsg.Start("AdvDupeClientSendOK", ply)
 	umsg.End()
@@ -1375,7 +1375,7 @@ function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
 
 	//local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
 	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
-	MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
+	--MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
 	timer.Simple( .5, AdvDupe.RecieveFileContentSave, ply, filepath )
 end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
@@ -1395,7 +1395,7 @@ function AdvDupe.RecieveFileContentSave( ply, filepath )
 				txt = txt .. i .. ", "
 			end
 		end
-		MsgN(txt)
+		--MsgN(txt)
 
 		AdvDupe.SendClientError(ply, "ERROR: \""..FileName.."\", failed uploading", true)
 		AdvDupe.SendClientError(ply, "Server expected "..expected.." pieces but got "..got)
@@ -1414,7 +1414,7 @@ function AdvDupe.RecieveFileContentSave( ply, filepath )
 	local temp = table.concat(AdvDupe[ply].tempfile)
 
 	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
-		MsgN("AdvDupe, RecieveFileContentSave: save compressed file")
+		--MsgN("AdvDupe, RecieveFileContentSave: save compressed file")
 		if AdvDupe[ply].compress then
 			temp = "[zlib_b64]"..temp
 		else
@@ -1432,7 +1432,7 @@ function AdvDupe.RecieveFileContentSave( ply, filepath )
 	AdvDupe.SendClientInfoMsg(ply, "Your file: \""..FileName.."\" was uploaded to the server")
 	ply:PrintMessage(HUD_PRINTCONSOLE, "Your file: \""..FileName.."\" was uploaded to the server")
 
-	MsgN("player: \"",(ply:GetName() or "unknown"),"\" uploaded file: \"",filepath,"\"")
+	--MsgN("player: \"",(ply:GetName() or "unknown"),"\" uploaded file: \"",filepath,"\"")
 
 	AdvDupe.UpdateList(ply)
 
@@ -1463,7 +1463,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 
 	if !file.Exists(filepath) then //if filepath was just a file name then try to find the file, for sending from list
 		if !file.Exists(dir.."/"..filename) && !file.Exists(ndir.."/"..filename) then
-			MsgN("AdvDupe: File not found: \"",filepath,"\"")
+			--MsgN("AdvDupe: File not found: \"",filepath,"\"")
 			return
 		end
 		if ( file.Exists(ndir.."/"..filename) ) then filepath = ndir.."/"..filename end
@@ -1475,7 +1475,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	AdvDupe.SendBuffer[ply] = file.Read(dupeshare.ParsePath(filepath)) or ""
 
 	local compress = (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	MsgN("Compress = ",compress)
+	--MsgN("Compress = ",compress)
 
 	AdvDupe.SendBuffer[ply] = dupeshare.Compress(AdvDupe.SendBuffer[ply], false, compress)
 
@@ -1490,11 +1490,11 @@ function AdvDupe.SendSaveToClient( ply, filename )
 		umsg.Bool(compress)
 		//umsg.String(ndir)
 	umsg.End()
-	MsgN("AdvDupe: sending file \"",filename,".txt\" in ",tostring(last)," pieces. len: ",tostring(len))
+	--MsgN("AdvDupe: sending file \"",filename,".txt\" in ",tostring(last)," pieces. len: ",tostring(len))
 	//AdvDupe.SetPercentText( ply, "Downloading" )
 
 	//AdvDupe.SendSaveToClientData(ply, 1, last)
-	MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
+	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
 	timer.Simple( PlayerSettings[ply].DownloadSendInterval, AdvDupe.SendSaveToClientData, ply, 1, last )
 end
 
@@ -1509,7 +1509,7 @@ function AdvDupe.SendSaveToClientData(ply, offset, last)
 		if ( offset == last ) then
 			//umsg.String(string.Right(AdvDupe[ply].temp, (len - ((last - 2) * MaxDownloadLength))))
 			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart )
-			Msg("AdvDupe: send last piece\n")
+			--Msg("AdvDupe: send last piece\n")
 		else
 			//umsg.String(string.Right(string.Left(AdvDupe[ply].temp, ((offset + k) * MaxDownloadLength)),MaxDownloadLength))
 			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + MaxDownloadLength - 1 )
@@ -1932,10 +1932,10 @@ function AdvDupe.StartPaste( Player, inEntityList, inConstraintList, HeadEntityI
 		AdvDupe.NormPaste( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, Thinger, PasteFrozen, PastewoConst, CreatedEntities, CreatedConstraints )
 		CallOnPasteFin( Thinger, CreatedEntities, CreatedConstraints )
 	elseif ( NumOfEnts + NumOfConst > UseTimedPasteThreshold) then
-		Msg("===adding new timed paste===\n")
+		--Msg("===adding new timed paste===\n")
 		AdvDupe.OverTimePasteStart( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger )
 	else
-		Msg("===adding new delayed paste===\n")
+		--Msg("===adding new delayed paste===\n")
 		AdvDupe.AddDelayedPaste( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, false, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger )
 	end
 end
@@ -2430,10 +2430,6 @@ end
 //	Clean Up
 //
 function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
-
-	-- This hook is for E2's dupefinished function
-	hook.Call("AdvDupe_FinishPasting",AdvDupe,TimedPasteData,TimedPasteDataCurrent)
-
 	if ( !TimedPasteData[TimedPasteDataCurrent].DontRemoveThinger ) then
 		if ( TimedPasteData[TimedPasteDataCurrent].Shooting_Ent.Entity ) then
 			TimedPasteData[TimedPasteDataCurrent].Shooting_Ent.Entity:Remove()
@@ -2848,7 +2844,7 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 			CheckFunctions[ HookName ] = nil
 
 			if ( OnFailCallBack ) then
-				MsgN("OnFailCallBack")
+				--MsgN("OnFailCallBack")
 				local Success, Result = pcall( OnFailCallBack, HookName )
 				if ( !Success ) then
 					ErrorNoHalt("AdvDupeERROR: WTF! \"",HookName,"\" OnFailCallBack failed too! Tell who ever make that hook that they're doing it wrong. Error: \"",tostring(Result),"\"\n")
@@ -2883,12 +2879,12 @@ function AdvDupe.AdminSettings.AddEntCheckHook( HookName, Func, OnFailCallBack )
 	CheckFunctions[ HookName ] = {}
 	CheckFunctions[ HookName ].Func = Func
 	CheckFunctions[ HookName ].OnFailCallBack = OnFailCallBack
-	MsgN("Added EntCheckHook: ",HookName)
+	--MsgN("Added EntCheckHook: ",HookName)
 end
 function AdvDupe.AdminSettings.RemoveEntCheckHook( HookName )
 	if ( CheckFunctions[ HookName ] ) then
 		CheckFunctions[ HookName ] = nil
-		MsgN("Removed EntCheckHook: ",HookName)
+		--MsgN("Removed EntCheckHook: ",HookName)
 		return true
 	end
 end
@@ -2973,7 +2969,7 @@ function AdvDupe.OldPaste( ply, Ents, Constraints, DupeInfo, DORInfo, HeadEntity
 	local HeadEntity = nil
 
 
-	Msg("\n=================--DoingLegacyPaste--=================\n")
+	--Msg("\n=================--DoingLegacyPaste--=================\n")
 
 	if (!Ents) then return false end
 
@@ -3206,7 +3202,7 @@ function AdvDupe.PasteApplyEntMods( ply, Ent, EntTable )
 
 	for ModifierType, Modifier in pairs(AdvDupe.OldEntityModifiers) do
 		if EntTable[ModifierType] then
-			MsgN("Applying Mod Type: ",ModifierType)
+			--MsgN("Applying Mod Type: ",ModifierType)
 			local args = {}
 
 			for n,arg in pairs(Modifier.Args) do
@@ -3667,4 +3663,4 @@ end
 
 
 
-MsgN("==== Advanced Duplicator v.",AdvDupe.Version," server module installed! ====")
+--MsgN("==== Advanced Duplicator v.",AdvDupe.Version," server module installed! ====")

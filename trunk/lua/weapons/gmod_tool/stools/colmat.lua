@@ -204,11 +204,11 @@ if ( CLIENT ) then
 
 
 	local function SetMaterialList( pl, command, args )
-		Msg("matlistchnage\n")
+		--Msg("matlistchnage\n")
 		if !args[1] then return end
 
 		for k,v in pairs(list.Get( "MaterialsLists" ) ) do
-			Msg("checking "..k.."\n")
+			--Msg("checking "..k.."\n")
 			if ( args[1] == v.colmat_materiallist  ) then
 				ColMat_UpdateControlPanel( args[1] )
 				return
