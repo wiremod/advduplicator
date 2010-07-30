@@ -2871,8 +2871,8 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 		MsgN("AdvDupeERROR: ",tostring(Player)," tried to paste admin only prop ",(EntTable.Class or "NIL")," : ",EntID)
 		return false
 	else
-		--return true
-		return false
+		return true
+		--return false
 	end
 end
 
