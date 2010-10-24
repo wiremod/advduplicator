@@ -603,6 +603,7 @@ end
 function TOOL:Holster()
 	if CLIENT then return end
 	self:HideGhost(true)
+	AdvDupe.SetPercent(self:GetOwner(), -1)
 end
 
 
