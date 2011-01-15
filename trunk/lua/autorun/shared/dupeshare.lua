@@ -158,6 +158,20 @@ dupeshare.Dictionary = {
 	[116]	= {"|N", "name"},
 }
 
+local char_map = {
+	["\n"] = "ƒ",
+	["\t"] = "†",
+	["\""] = "¥",
+	["'"]  = "¤"
+}
+
+local inv_char_map = {
+	["ƒ"] = "\n",
+	["†"] = "\t",
+	["¥"] = "\"",
+	["‡"] = "\"",
+	["¤"] = "'"
+}
 
 function dupeshare.Compress(str, ForConCommand, usezlib)
 
@@ -190,9 +204,12 @@ function dupeshare.Compress(str, ForConCommand, usezlib)
 		end
 
 		if (ForConCommand) then //„…ˆ‰Š‹Œ‘’“”•–—˜™š›œŸ ¡¢£¤¦§¨©ª unused special chars
-			str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"ƒ","|ƒ"),"†","|†"),"¥","|¥"),"‡","|‡"),"¤","|¤") //incase it has any of these...
-			--str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"\n","ƒ"),"\t","†"),"\"","¥"),"bind","‡"),"exec","¤")
-			str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"\n","ƒ"),"\t","†"),"\"","¥"),"\"","‡"),"'","¤")
+			for k, _ in pairs (inv_char_map) do
+				str = string.gsub (str, k, "|" .. k)
+			end
+			for k, v in pairs (char_map) do
+				str = string.gsub (str, k, v)
+			end
 		end
 	end
 
@@ -217,9 +234,14 @@ function dupeshare.DeCompress(str, FormConCommand, usezlib)
 		end
 
 		if (FormConCommand) then
-			str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"|ƒ","ƒ"),"|†","†"),"|¥","¥"),"|‡","‡"),"|¤","¤")
-			--str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"ƒ","\n"),"†","\t"),"¥","\""),"‡","bind"),"¤","exec")
-			str = string.gsub(string.gsub(string.gsub(string.gsub(string.gsub(str,"ƒ","\n"),"†","\t"),"¥","\""),"‡","\""),"¤","'")
+			for k, v in pairs (inv_char_map) do
+				str = string.gsub (str, "(." .. k .. ")", function (s)
+					if s:sub (1, 1) == "|" then
+						return k
+					end
+					return s:sub (1, 1) .. v
+				end)
+			end
 		end
 	end
 
