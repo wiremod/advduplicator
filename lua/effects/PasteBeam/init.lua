@@ -20,7 +20,7 @@ function EFFECT:Init( data )
 	// It doesn't matter what order you pass them in - I sort them for you in the engine
 	// We want to draw from start to origin
 	// These Vectors are in entity space
-	self.Entity:SetRenderBoundsWS( self.StartPos, self.EndPos )
+	self:SetRenderBoundsWS( self.StartPos, self.EndPos )
 
 	self.Alpha = 255
 
