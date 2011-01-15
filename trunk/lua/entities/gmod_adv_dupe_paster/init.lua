@@ -10,14 +10,14 @@ ENT.OverlayDelay = 0
 local MODEL = Model( "models/props_lab/powerbox02d.mdl" )
 
 function ENT:Initialize()
-	self.Entity:SetModel( MODEL )
+	self:SetModel( MODEL )
 
-	self.Entity:SetMoveType( MOVETYPE_NONE )
-	self.Entity:PhysicsInit( SOLID_VPHYSICS )
-	self.Entity:SetCollisionGroup( COLLISION_GROUP_WEAPON )
-	self.Entity:DrawShadow( false )
+	self:SetMoveType( MOVETYPE_NONE )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+	self:DrawShadow( false )
 
-	local phys = self.Entity:GetPhysicsObject()
+	local phys = self:GetPhysicsObject()
 	if (phys:IsValid()) then phys:Wake() end
 
 	self.UndoListEnts	= {}
@@ -30,9 +30,9 @@ function ENT:Initialize()
 
 	if WireAddon then
 		// Add inputs/outputs (TheApathetic)
-		self.Inputs = Wire_CreateInputs(self.Entity, {"Spawn", "Undo", "X", "Y", "Z" })
-		self.Outputs = Wire_CreateOutputs(self.Entity, {"PropCount", "ClearToPaste"})
-		Wire_TriggerOutput(self.Entity, "ClearToPaste", 1)
+		self.Inputs = Wire_CreateInputs(self, {"Spawn", "Undo", "X", "Y", "Z" })
+		self.Outputs = Wire_CreateOutputs(self, {"PropCount", "ClearToPaste"})
+		Wire_TriggerOutput(self, "ClearToPaste", 1)
 	end
 
 	self.ClearToPaste = true
@@ -70,7 +70,7 @@ function ENT:Setup(ents, const, holdangle, delay, undo_delay, max_range, show_be
 
 end
 
-function ENT:OnTakeDamage( dmginfo )	self.Entity:TakePhysicsDamage( dmginfo ) end
+function ENT:OnTakeDamage( dmginfo )	self:TakePhysicsDamage( dmginfo ) end
 
 local function OnPasteFin( paster, Ents, Consts )
 	paster.PropCount = paster.PropCount + 1
@@ -97,25 +97,25 @@ function ENT:Paste()
 	if (self.MaxRange > 0) then
 		local skew		= Vector(self:GetSkewX(), self:GetSkewY(), 1)
 		skew			= skew*((self.MaxRange + self:GetSkewZ())/skew:Length())
-		local beam_x	= self.Entity:GetRight()*skew.x
-		local beam_y	= self.Entity:GetForward()*skew.y
-		local beam_z	= self.Entity:GetUp()*skew.z
+		local beam_x	= self:GetRight()*skew.x
+		local beam_y	= self:GetForward()*skew.y
+		local beam_z	= self:GetUp()*skew.z
 		local trace		= {}
-		trace.start		= self.Entity:GetPos() + self.Entity:GetUp()*self.Entity:OBBMaxs().z
+		trace.start		= self:GetPos() + self:GetUp()*self:OBBMaxs().z
 		trace.endpos	= trace.start + beam_x + beam_y + beam_z
 		local trace		= util.TraceLine(trace)
 		self.offset		= trace.HitPos
 	else
-		self.offset = self.Entity:GetPos() + self.Entity:GetUp() * self.Entity:OBBMaxs().z
+		self.offset = self:GetPos() + self:GetUp() * self:OBBMaxs().z
 	end
 
-	local angle  = self.Entity:GetAngles()
+	local angle  = self:GetAngles()
 	angle.pitch = 0
 	angle.roll = 0
 
-	AdvDupe.StartPaste( self:GetPlayer(), self.MyEnts, self.MyConstraints, self.MyHeadEntityIdx, self.offset, angle - self.MyHoldAngle, self.NumOfEnts, self.NumOfConst, self.PasteFrozen, self.PastewoConst, OnPasteFin, true, self.Entity, true )
+	AdvDupe.StartPaste( self:GetPlayer(), self.MyEnts, self.MyConstraints, self.MyHeadEntityIdx, self.offset, angle - self.MyHoldAngle, self.NumOfEnts, self.NumOfConst, self.PasteFrozen, self.PastewoConst, OnPasteFin, true, self, true )
 
-	timer.Simple( AdvDupe.GetPasterClearToPasteDelay(), ClearToPaste, self.Entity )
+	timer.Simple( AdvDupe.GetPasterClearToPasteDelay(), ClearToPaste, self )
 
 end
 
@@ -129,7 +129,7 @@ function ENT:TriggerInput(iname, value)
 		self.SpawnLastValue = (value > 0)
 
 		if (self.SpawnLastValue) then
-			Wire_TriggerOutput(self.Entity, "ClearToPaste", 0)
+			Wire_TriggerOutput(self, "ClearToPaste", 0)
 			self.ClearToPaste = false
 
 			// Simple copy/paste of old numpad Spawn with a few modifications
@@ -141,7 +141,7 @@ function ENT:TriggerInput(iname, value)
 				ent:GetTable():Paste()
 			end
 
-			timer.Simple( self.delay, TimedSpawn, self.Entity, pl )
+			timer.Simple( self.delay, TimedSpawn, self, pl )
 		end
 	elseif (iname == "Undo") then
 		// Same here
@@ -165,7 +165,7 @@ end
 function ENT:ShowOutput()
 	self:SetOverlayText("Spawn Delay: "..self.delay.."\nUndo Delay: "..self.undo_delay.."\nCurrent Props: "..self.PropCount)
 	if WireAddon then
-		Wire_TriggerOutput(self.Entity, "PropCount", self.PropCount)
+		Wire_TriggerOutput(self, "PropCount", self.PropCount)
 	end
 end
 
@@ -206,7 +206,7 @@ function ENT:DoUndo( pl )
 
 	umsg.Start( "UndoWirePasterProp", pl ) umsg.End()
 
-	Wire_TriggerOutput(self.Entity, "Out", self.PropCount)
+	Wire_TriggerOutput(self, "Out", self.PropCount)
 	self:ShowOutput()
 end
 
@@ -220,11 +220,11 @@ end
 
 
 function ENT:OnRemove()
-	Wire_Remove(self.Entity)
+	Wire_Remove(self)
 end
 
 function ENT:OnRestore()
-    Wire_Restored(self.Entity)
+    Wire_Restored(self)
 end
 
 
