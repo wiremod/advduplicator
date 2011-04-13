@@ -603,7 +603,6 @@ end
 function TOOL:Holster()
 	if CLIENT then return end
 	self:HideGhost(true)
-	AdvDupe.SetPercent(self:GetOwner(), -1)
 end
 
 
@@ -627,6 +626,8 @@ end
 
 
 function TOOL:ClearClipBoard()
+
+	if (self.Entities == nil) then return end -- Already cleared
 
 	self:ReleaseGhostEntity()
 	self.GhostEntities = {}
@@ -653,7 +654,8 @@ function TOOL:ClearClipBoard()
 	self:GetOwner():ConCommand( "adv_duplicator_pastewoconst 0")
 
 	if SERVER then
-		AdvDupe.UpdateList(self:GetOwner())
+		self:UpdateList()
+		--AdvDupe.UpdateList(self:GetOwner())
 	end
 
 end
