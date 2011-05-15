@@ -1,4 +1,3 @@
-
 AddCSLuaFile( "autorun/client/cl_advdupe.lua" )
 AddCSLuaFile( "autorun/shared/dupeshare.lua" )
 
@@ -2518,9 +2517,19 @@ function AdvDupe.GenericDuplicatorFunction( Player, data, ID )
 
 	--Msg("AdvDupeInfo: Generic make function for Class: "..data.Class.." Ent: ".."\n")
 
-	local Entity = ents.Create( data.Class )
+	// Prevent people from spawning rogue entities
+	local validEnts = {}
+	for class in pairs( scripted_ents.GetList() ) do
+		table.insert( validEnts, class )
+	end
+
+	local Entity = NULL
+	if ( data.Class != "lua_run" and data.Class:Left( 5 ) != "base_" and table.HasValue( validEnts, data.Class ) ) then
+		Entity = ents.Create( data.Class )
+	end
+
 	if (!Entity:IsValid()) then
-		MsgN("AdvDupeError: Unknown class \"",data.Class,"\", making hallow prop instead for ent: ",ID)
+		MsgN("AdvDupeError: Unknown class \"",data.Class,"\", making prop instead for ent: ",ID)
 		Entity = ents.Create( "prop_physics" )
 		Entity:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	end
