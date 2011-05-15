@@ -234,6 +234,18 @@ function Serialiser.DeserialiseBlock( block, StrTbl )
 		end
 	end
 
+	// Remove any rogue keyvalues for vehicles to prevent exploiting
+	// This makes exploits like the lua_run one silently fail
+	for id, entInfo in pairs( tables[head] ) do
+		if ( entInfo.VehicleTable and entInfo.VehicleTable.KeyValues ) then
+			for key, value in pairs( entInfo.VehicleTable.KeyValues ) do
+				if ( key != "limitview" and key != "vehiclescript" ) then
+					entInfo.VehicleTable.KeyValues[key] = nil
+				end
+			end
+		end
+	end
+
 	return tables[ head ]
 
 end
