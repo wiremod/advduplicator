@@ -2517,14 +2517,8 @@ function AdvDupe.GenericDuplicatorFunction( Player, data, ID )
 
 	--Msg("AdvDupeInfo: Generic make function for Class: "..data.Class.." Ent: ".."\n")
 
-	// Prevent people from spawning rogue entities
-	local validEnts = {}
-	for class in pairs( scripted_ents.GetList() ) do
-		table.insert( validEnts, class )
-	end
-
 	local Entity = NULL
-	if ( data.Class != "lua_run" and data.Class:Left( 5 ) != "base_" and table.HasValue( validEnts, data.Class ) ) then
+	if ( data.Class != "lua_run" and data.Class:Left( 5 ) != "base_" and scripted_ents.GetList()[data.Class] ) then
 		Entity = ents.Create( data.Class )
 	end
 
