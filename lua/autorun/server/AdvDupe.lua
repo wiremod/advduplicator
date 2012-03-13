@@ -1183,6 +1183,8 @@ function AdvDupe.AdminSettings.HaltUpload( ply )
 	umsg.End()
 end
 function AdvDupe.RecieveFileContentStart( ply, cmd, args )
+	if not ply or not ply:IsValid() or not ply:IsAdmin() then return end
+
 	 AdvDupe.AdminSettings.UploadSettings( ply, tonumber(args[1]), tonumber(args[2]), tonumber(args[3] or 0) )
 end
 concommand.Add("AdvDupe_UploadSettings", AdvDupe.RecieveFileContentStart)
