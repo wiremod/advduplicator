@@ -59,7 +59,7 @@ function TOOL:LeftClick( trace )
 	if Snapping then
 		angle.yaw = math.Round( angle.yaw / 45 ) * 45
 	end
-	angle.yaw = angle.yaw + self:GetClientNumber( "angle" )
+	angle.yaw = angle.yaw + math.Clamp(self:GetClientNumber( "angle" ),0,360)
 
 	local Ents, Constraints = nil,nil
 
@@ -81,10 +81,10 @@ function TOOL:LeftClick( trace )
 		local DupePos, DupeAngle
 		if self:GetClientNumber( "worldOrigin" ) ~= 0 then
 			-- Paste at original location
-			DupePos, DupeAngle = self.StartPos, Angle(0,self:GetClientNumber( "angle" ),0)
+			DupePos, DupeAngle = self.StartPos, Angle(0,math.Clamp(self:GetClientNumber( "angle" ),0,360),0)
 		elseif self:GetClientNumber( "worldAngles" ) ~= 0 then
 			-- Paste at original Angles
-			DupePos, DupeAngle = trace.HitPos, Angle(0,self:GetClientNumber( "angle" ),0)
+			DupePos, DupeAngle = trace.HitPos, Angle(0,math.Clamp(self:GetClientNumber( "angle" ),0,360),0)
 		else
 			-- nothing checked
 			local HoldAngle = self.HoldAngle
@@ -94,7 +94,7 @@ function TOOL:LeftClick( trace )
 
 		AdvDupe.StartPaste(
 			self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx,
-			DupePos + Vector(0,0,self:GetClientNumber( "height" )), DupeAngle,
+			DupePos + Vector(0,0,math.Clamp(self:GetClientNumber( "height" ),-16384,16384)), DupeAngle,
 			self.NumOfEnts, self.NumOfConst, PasteFrozen, PastewoConst
 		)
 
@@ -404,7 +404,7 @@ function TOOL:UpdateGhostEntities()
 	if Snapping then
 		angle.yaw = math.Round( angle.yaw / 45 ) * 45
 	end
-	angle.yaw = angle.yaw + self:GetClientNumber( "angle" )
+	angle.yaw = angle.yaw + math.Clamp(self:GetClientNumber( "angle" ),0,360)
 
 	local GhostEnt = nil
 	local HoldPos = nil
@@ -413,7 +413,7 @@ function TOOL:UpdateGhostEntities()
 		GhostEnt = self.GhostEntities[ self.HeadEntityIdx ]
 		HoldPos = self.HoldPos
 
-		local height = self:GetClientNumber( "height" )
+		local height = math.Clamp(self:GetClientNumber( "height" ),-16384,16384)
 		self.Weapon:SetNetworkedFloat( "height", height )
 
 		self.Weapon:SetNetworkedBool( "worldOrigin", false )
@@ -465,7 +465,7 @@ function TOOL:UpdateGhostEntities()
 
 		if self.Weapon:GetNetworkedBool( "worldOrigin" ) or self.Weapon:GetNetworkedBool( "worldAngles" )then
 			-- Paste at Original Location or Paste at Original Angles
-			PhysObj:SetAngle( self.Weapon:GetNetworkedAngle( "HoldAngle" ) + Angle(0, self:GetClientNumber( "angle" ), 0) )
+			PhysObj:SetAngle( self.Weapon:GetNetworkedAngle( "HoldAngle" ) + Angle(0, math.Clamp(self:GetClientNumber( "angle" ),0,360), 0) )
 		else
 			-- nothing checked
 			PhysObj:SetAngle( (GhostEnt.Angle or Angle(0,0,0)) + angle )
