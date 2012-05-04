@@ -110,7 +110,6 @@ end
 function TOOL:RightClick( trace )
 
 	if self:GetPasting() then return end
-	--self:SetPercentText("Copying")
 
 	local AddToSelection = self:GetOwner():KeyDown(IN_SPEED) and not self.Legacy and not self.FileLoaded and self.Copied
 
@@ -120,8 +119,6 @@ function TOOL:RightClick( trace )
 	end
 
 	if CLIENT then return true end
-
-	--self:SetPercentText("Copying...")
 
 	local StartPos
 	if AddToSelection then
@@ -191,8 +188,6 @@ function TOOL:RightClick( trace )
 	self.Info.FileTime		= ""
 
 	self:UpdateLoadedFileInfo()
-
-	--self:SetPercent(100)
 
 	return true
 
@@ -737,8 +732,6 @@ function TOOL:LoadFileCallBack( filepath, Entities, Constraints, DupeInfo, DORIn
 		self.Info.FileDate		= FileDate
 		self.Info.FileTime		= FileTime
 
-		--self:GetOwner():ConCommand( "adv_duplicator_angle "..self.HoldAngle.yaw)
-
 		self:UpdateLoadedFileInfo()
 
 		self:UpdateList()
@@ -765,7 +758,6 @@ function TOOL:UpdateList()
 
 	local cdir = AdvDupe[self:GetOwner()].cdir
 
-	--Msg("cdir= "..cdir.."\n")
  	self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs={}" )
 	self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles={}" )
 	self:GetOwner():SendLua( "AdvDupeClient.SScdir=\""..cdir.."\"" )
@@ -785,7 +777,6 @@ function TOOL:UpdateList()
 	if ( file.Exists(cdir) && file.IsDir(cdir) ) then
 		for key, val in pairs( file.Find(dupeshare.ParsePath( cdir.."/*" )) ) do
 			if ( !file.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
-				--self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles[\""..val.."\"] = \""..cdir.."/"..val.."\"" )
 				self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles[\""..val.."\"] = \""..val.."\"" )
 			elseif  ( file.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
 				self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/"..val.."\"] = \""..cdir.."/"..val.. "\"" )
@@ -797,7 +788,6 @@ function TOOL:UpdateList()
 	if (AdvDupe[self:GetOwner()].cdir2 ~= "") then
 
 		local cdir2 = AdvDupe[self:GetOwner()].cdir2
-		--Msg("cdir2= "..cdir2.."\n")
 		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2={}" )
 		self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles2={}" )
 		self:GetOwner():SendLua( "AdvDupeClient.SScdir2=\""..cdir2.."\"" )
@@ -897,11 +887,6 @@ if SERVER then
 
 			tool:GetTable():GetToolObject():LoadFile( filepath )
 
-			--pl:SendLua(  "LocalPlayer():GetActiveWeapon():GetTable():GetToolObject():StartGhostEntities()")
-			--tool:GetTable():GetToolObject():StartGhostEntities()
-			--tool:GetTable():GetToolObject():SendGhostToClient(true)
-			--pl:SendLua(  "LocalPlayer():GetActiveWeapon():GetTable():GetToolObject():UpdateGhostEntities()" )
-
 		else --list must be outdated, refresh it
 			tool:GetTable():GetToolObject():UpdateList()
 			return
@@ -966,22 +951,6 @@ if SERVER then
 	end
 	concommand.Add( "adv_duplicator_open_dir2", AdvDupeSS_OpenDir2 )
 
-	-- Clientside save of duplicated ents
-	--[[local function AdvDupeCL_Save( pl, command, args )
-
-		if !pl:IsValid()
-		or !pl:IsPlayer()
-		--or !pl:GetTable().Duplicator
-		or !AdvDupe[pl]
-		then return end
-
-		--save to file
-		AdvDupe.SaveAndSendSaveToClient( pl, tostring(pl:GetInfo( "adv_duplicator_save_filename" )), tostring(pl:GetInfo( "adv_duplicator_file_desc" )) )
-
-		AdvDupe.UpdateList(pl)
-	end
-	concommand.Add( "adv_duplicator_save_cl", AdvDupeCL_Save )]]
-
 	--sends the selected file to the client
 	local function AdvDupeSS_ClSend( pl, command, args )
 
@@ -1017,9 +986,6 @@ if SERVER then
 	end
 
 	function TOOL:SetPercent( Percent )
-		--[[umsg.Start("AdvDupe_Update_Percent", self:GetOwner())
-			umsg.Short(Percent)
-		umsg.End()]]
 		AdvDupe.SetPercent(self:GetOwner(), Percent)
 	end
 
@@ -1163,7 +1129,6 @@ if CLIENT then
 				bottom:Button("Open Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir")
 			else
 				bottom:Button("Save To Server", "adv_duplicator_save_gui")
-				--bottom:Button("Save to Server Then Download", "adv_duplicator_save_cl")
 				bottom:Button("Open Upload/Download Menu", "adv_duplicator_cl_menu", "clientupload")
 				bottom:Button("Open Server Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir")
 			end
@@ -1182,7 +1147,6 @@ if CLIENT then
 			else
 				bottom:AddItem(Label("No Data in Clipboard"))
 			end
-			--bottom:CheckBox("Debug Save (larger file):", "adv_duplicator_debugsave")
 			if AdvDupeClient.FileLoaded or AdvDupeClient.Copied then
 				bottom:NumSlider("Height Offset:", "adv_duplicator_height", -1024, 1024, 0)
 				bottom:NumSlider( "Angle Offset:", "adv_duplicator_angle", -180, 180, 0 )
