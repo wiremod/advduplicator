@@ -8,10 +8,10 @@ TOOL.Category		= "Construction"
 TOOL.Name			= "#AdvancedDuplicator"
 
 if CLIENT then
-	language.Add( "AdvancedDuplicator", "Advanced Duplicator" )
-	language.Add( "Tool_adv_duplicator_name", "Advanced Duplicator" )
-	language.Add( "Tool_adv_duplicator_desc", "Duplicate an entity, or group of entities" )
-	language.Add( "Tool_adv_duplicator_0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
+	language12.Add( "AdvancedDuplicator", "Advanced Duplicator" )
+	language12.Add( "Tool_adv_duplicator_name", "Advanced Duplicator" )
+	language12.Add( "Tool_adv_duplicator_desc", "Duplicate an entity, or group of entities" )
+	language12.Add( "Tool_adv_duplicator_0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
 end
 
 
