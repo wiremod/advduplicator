@@ -1,7 +1,9 @@
 AddCSLuaFile( "autorun/client/cl_advdupe.lua" )
 AddCSLuaFile( "autorun/shared/dupeshare.lua" )
+AddCSLuaFile( "autorun/shared/gmod13compat.lua" )
 
 include( "autorun/shared/dupeshare.lua" )
+include( "autorun/shared/gmod13compat.lua" )
 if (!dupeshare) then Msg("===AdvDupe: Error! dupeshare module not loaded\n") end
 --[[---------------------------------------------------------
    Advanced Duplicator module
@@ -83,10 +85,10 @@ end
 -----------------------------------------------------------]]
 function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 
-	if ( !file.Exists(filepath) ) then return end
+	if ( !file12.Exists(filepath) ) then return end
 
 	--load from file
-	--local temp = file.Read(filepath)
+	--local temp = file12.Read(filepath)
 
 	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if ( !tool ) then return end
@@ -273,7 +275,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 				)
 
 			elseif (temp) and (temp["Information"]) then --Old Contrpation Saver File
-				--Msg("AdvDupe:Loading old Contraption Saver file.\n")
+				--Msg("AdvDupe:Loading old Contraption Saver file12.\n")
 
 				--find the lowest and use that as the head
 				local head,low
@@ -316,7 +318,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 	end
 
 	AdvDupe.SetPercent(ply, 10)
-	timer.Simple(.1, Load1, ply, filepath, tool, file.Read(dupeshare.ParsePath(filepath)) or "")
+	timer.Simple(.1, Load1, ply, filepath, tool, file12.Read(dupeshare.ParsePath(filepath)) or "")
 
 end
 
@@ -614,8 +616,8 @@ if (dupeshare and dupeshare.PublicDirs) then
 	for k, v in pairs(dupeshare.PublicDirs) do
 		local dir = dupeshare.BaseDir.."/"..v
 		AdvDupe.PublicDirs[v] = dir
-		if ( !file.Exists(dir) ) or ( file.Exists(dir) and !file.IsDir(dir) ) then
-			file.CreateDir( dupeshare.ParsePath(dir) )
+		if ( !file12.Exists(dir) ) or ( file12.Exists(dir) and !file12.IsDir(dir) ) then
+			file12.CreateDir( dupeshare.ParsePath(dir) )
 		end
 	end
 end
@@ -698,14 +700,14 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 
 	if (action == "delete") and AdvDupe.CheckPerms(ply, "", dir, "delete") then
 
-		file.Delete(dupeshare.ParsePath(file1))
+		file12.Delete(dupeshare.ParsePath(file1))
 		AdvDupe.HideGhost(ply, false)
 		AdvDupe.UpdateList(ply)
 
 	elseif (action == "copy") and AdvDupe.CheckPerms(ply, "", dir2, "write") then
 
 		local file2 = dir2.."/"..filename
-		if file.Exists(file2) then
+		if file12.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir2, filename)
 			if dir == dir2 then
@@ -714,7 +716,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 				AdvDupe.SendClientError(ply, "File Exists at Destination, Saved File as: "..filename2)
 			end
 		end
-		file.Write(dupeshare.ParsePath(file2), file.Read(dupeshare.ParsePath(file1)) or "")
+		file12.Write(dupeshare.ParsePath(file2), file12.Read(dupeshare.ParsePath(file1)) or "")
 		AdvDupe.UpdateList(ply)
 
 	elseif (action == "move") and AdvDupe.CheckPerms(ply, "", dir, "delete")
@@ -735,12 +737,12 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 			return
 		end
 
-		if file.Exists(file1) and file.IsDir(file1) then
+		if file12.Exists(file1) and file12.IsDir(file1) then
 			AdvDupe.SendClientError(ply, "Folder Already Exists!")
 			return
 		end
 
-		file.CreateDir(dupeshare.ParsePath(file1))
+		file12.CreateDir(dupeshare.ParsePath(file1))
 		AdvDupe.HideGhost(ply, false)
 		AdvDupe.UpdateList(ply)
 
@@ -753,12 +755,12 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 	elseif (action == "duplicate") and AdvDupe.CheckPerms(ply, "", dir, "write") then
 
 		local file2 = dir.."/"..dir2 --using dir2 to hold the new filename
-		if file.Exists(file2) then
+		if file12.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir, dir2)
 			AdvDupe.SendClientError(ply, "File Exists With That Name Already, Renamed as: "..filename2)
 		end
-		file.Write(dupeshare.ParsePath(file2), file.Read(dupeshare.ParsePath(file1)) or "")
+		file12.Write(dupeshare.ParsePath(file2), file12.Read(dupeshare.ParsePath(file1)) or "")
 		AdvDupe.UpdateList(ply)
 
 	else
@@ -1204,7 +1206,7 @@ function AdvDupe.RecieveFileContentSave( ply, filepath )
 		temp = dupeshare.DeCompress(temp, true, AdvDupe[ply].compress)
 	end
 
-	file.Write(dupeshare.ParsePath(filepath), temp)
+	file12.Write(dupeshare.ParsePath(filepath), temp)
 
 	AdvDupe[ply].tempfile = nil
 
@@ -1241,18 +1243,18 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	local dir = "adv_duplicator"
 	local ndir = dir.."/"..dupeshare.GetPlayerName(ply)
 
-	if !file.Exists(filepath) then --if filepath was just a file name then try to find the file, for sending from list
-		if !file.Exists(dir.."/"..filename) && !file.Exists(ndir.."/"..filename) then
+	if !file12.Exists(filepath) then --if filepath was just a file name then try to find the file, for sending from list
+		if !file12.Exists(dir.."/"..filename) && !file12.Exists(ndir.."/"..filename) then
 			--MsgN("AdvDupe: File not found: \"",filepath,"\"")
 			return
 		end
-		if ( file.Exists(ndir.."/"..filename) ) then filepath = ndir.."/"..filename end
-		if ( file.Exists(dir.."/"..filename) ) then filepath = dir.."/"..filename end
+		if ( file12.Exists(ndir.."/"..filename) ) then filepath = ndir.."/"..filename end
+		if ( file12.Exists(dir.."/"..filename) ) then filepath = dir.."/"..filename end
 	end
 
 	filename = dupeshare.GetFileFromFilename(filepath)
 
-	AdvDupe.SendBuffer[ply] = file.Read(dupeshare.ParsePath(filepath)) or ""
+	AdvDupe.SendBuffer[ply] = file12.Read(dupeshare.ParsePath(filepath)) or ""
 
 	local compress = (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
 	--MsgN("Compress = ",compress)

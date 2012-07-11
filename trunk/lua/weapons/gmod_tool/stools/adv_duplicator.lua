@@ -769,16 +769,16 @@ function TOOL:UpdateList()
 	elseif (GetConVarNumber("sv_AdvDupeEnablePublicFolder") == 1) then --is at root
 		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/=Public Folder=\"] = \""..dupeshare.BaseDir.."/=Public Folder=\"" )
 
-		if ( file.Exists("Contraption Saver Tool") && file.IsDir("Contraption Saver Tool") ) then
+		if ( file12.Exists("Contraption Saver Tool") && file12.IsDir("Contraption Saver Tool") ) then
 			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/=Contraption Saver Dir=\"] = \"Contraption Saver Tool\"" )
 		end
 	end
 
-	if ( file.Exists(cdir) && file.IsDir(cdir) ) then
-		for key, val in pairs( file.Find(dupeshare.ParsePath( cdir.."/*" )) ) do
-			if ( !file.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
+	if ( file12.Exists(cdir) && file12.IsDir(cdir) ) then
+		for key, val in pairs( file12.Find(dupeshare.ParsePath( cdir.."/*" )) ) do
+			if ( !file12.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
 				self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles[\""..val.."\"] = \""..val.."\"" )
-			elseif  ( file.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
+			elseif  ( file12.IsDir(dupeshare.ParsePath( cdir.."/"..val )) ) then
 				self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/"..val.."\"] = \""..cdir.."/"..val.. "\"" )
 			end
 		end
@@ -799,16 +799,16 @@ function TOOL:UpdateList()
 		elseif (GetConVarNumber("sv_AdvDupeEnablePublicFolder") == 1) then --is at root
 			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/=Public Folder=\"] = \""..dupeshare.BaseDir.."/=Public Folder=\"" )
 
-			if ( file.Exists("Contraption Saver Tool") && file.IsDir("Contraption Saver Tool") ) then
+			if ( file12.Exists("Contraption Saver Tool") && file12.IsDir("Contraption Saver Tool") ) then
 				self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/=Contraption Saver Dir=\"] = \"Contraption Saver Tool\"" )
 			end
 		end
 
-		if ( file.Exists(cdir2) && file.IsDir(cdir2)) then
-			for key, val in pairs( file.Find(dupeshare.ParsePath( cdir2.."/*" ) )) do
-				if ( !file.IsDir(dupeshare.ParsePath( cdir2.."/"..val )) ) then
+		if ( file12.Exists(cdir2) && file12.IsDir(cdir2)) then
+			for key, val in pairs( file12.Find(dupeshare.ParsePath( cdir2.."/*" ) )) do
+				if ( !file12.IsDir(dupeshare.ParsePath( cdir2.."/"..val )) ) then
 					self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles2[\""..val.."\"] = \""..cdir2.."/"..val.."\"" )
-				elseif  ( file.IsDir(dupeshare.ParsePath( cdir2.."/"..val )) ) then
+				elseif  ( file12.IsDir(dupeshare.ParsePath( cdir2.."/"..val )) ) then
 					self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/"..val.."\"] = \""..cdir2.."/"..val.. "\"" )
 				end
 			end
@@ -878,12 +878,12 @@ if SERVER then
 
 		filepath = AdvDupe[pl].cdir.."/"..filepath
 
-		if ( file.Exists(filepath) && file.IsDir(filepath) ) then
+		if ( file12.Exists(filepath) && file12.IsDir(filepath) ) then
 			--dupeshare.UsePWSys
 			tool:GetTable():GetToolObject().cdir = filepath
 			tool:GetTable():GetToolObject():UpdateList()
 
-		elseif ( file.Exists(filepath) && !file.IsDir(filepath) ) then
+		elseif ( file12.Exists(filepath) && !file12.IsDir(filepath) ) then
 
 			tool:GetTable():GetToolObject():LoadFile( filepath )
 
@@ -921,7 +921,7 @@ if SERVER then
 			end
 		end
 
-		if file.Exists(dir) and file.IsDir(dir) then
+		if file12.Exists(dir) and file12.IsDir(dir) then
 			AdvDupe[pl].cdir = dir
 			tool:GetTable():GetToolObject():UpdateList()
 		end
@@ -940,7 +940,7 @@ if SERVER then
 			AdvDupe[pl].cdir2 = AdvDupe[pl].cdir
 		else
 			local dir = string.Implode(" ", args)
-			if ( file.Exists(dir) && file.IsDir(dir) ) then
+			if ( file12.Exists(dir) && file12.IsDir(dir) ) then
 				--dupeshare.UsePWSys
 				AdvDupe[pl].cdir2 = dir
 			end
@@ -1040,19 +1040,19 @@ if CLIENT then
 					line.key = dupeshare.UpDir(dir)
 				end
 			else
-				if file.Exists("Contraption Saver Tool") && file.IsDir("Contraption Saver Tool") then
+				if file12.Exists("Contraption Saver Tool") && file12.IsDir("Contraption Saver Tool") then
 					local line = list:AddLine("=Contraption Saver Dir=")
 					line.is_dir = true
 					line.key = "Contraption Saver Tool"
 				end
 			end
-			if file.Exists(dir) and file.IsDir(dir) then
-				for key, val in pairs(file.Find( dir.."/*" )) do
-					if not file.IsDir(dir.."/"..val) then
+			if file12.Exists(dir) and file12.IsDir(dir) then
+				for key, val in pairs(file12.Find( dir.."/*" )) do
+					if not file12.IsDir(dir.."/"..val) then
 						local line = list:AddLine(val)
 						line.key = dir.."/"..val
 					if line.key == LocalPlayer():GetInfo(concommand_file) then line:SetSelected( true ) end
-					elseif file.IsDir(dir.."/"..val) then
+					elseif file12.IsDir(dir.."/"..val) then
 						local line = list:AddLine("/"..val)
 						line.is_dir = true
 						line.key = dir.."/"..val
@@ -1314,7 +1314,7 @@ if CLIENT then
 
 		local dir = string.Implode(" ", args)
 
-		if ( file.Exists(dir) && file.IsDir(dir) ) then
+		if ( file12.Exists(dir) && file12.IsDir(dir) ) then
 			AdvDupeClient.CLcdir = dir
 		end
 
@@ -1328,7 +1328,7 @@ if CLIENT then
 
 		local dir = string.Implode(" ", args)
 
-		if ( file.Exists(dir) && file.IsDir(dir) ) then
+		if ( file12.Exists(dir) && file12.IsDir(dir) ) then
 			AdvDupeClient.CLcdir2 = dir
 		end
 
