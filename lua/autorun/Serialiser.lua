@@ -279,7 +279,7 @@ function Serialiser.DeserialiseWithHeaders( InData, CallBack, pl, filepath, tool
 		Header, ExtraHeader, DataBlock, DictBlock = InData:match("%[Info%]\n(.+)\n%[More Information%]\n(.+)\n%[Save%]\n(.+)\n%[Dict%]\n(.+)")
 
 	else
-		Msg("====Deserialise_ERROR:Pattern failed to load file. Attempting to find the data block now.====\n")
+		Msg("====Deserialise_ERROR:Pattern failed to load file12. Attempting to find the data block now.====\n")
 		DataBlock = InData
 	end
 
@@ -470,7 +470,7 @@ function Serialiser.SaveTablesToFile( pl, FileName, Header, ExtraHeader, NumOfEn
 						end
 					end
 
-					file.Write( FileName, output )
+					file12.Write( FileName, output )
 
 					AdvDupe.UpdateList(pl)
 					AdvDupe.SetPercent(pl, 100)

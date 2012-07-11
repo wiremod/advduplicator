@@ -434,25 +434,25 @@ end
 ---------------------------------------------------------*/
 function dupeshare.FileNoOverWriteCheck( dir, filename )
 
-	if !file.Exists(dir) then
-		file.CreateDir(dir)
-	elseif !file.IsDir(dir) then
+	if !file12.Exists(dir) then
+		file12.CreateDir(dir)
+	elseif !file12.IsDir(dir) then
 		local x = 0
 		while x ~= nil do
 			x = x + 1
-			if not file.Exists(dir.."_"..tostring(x)) then
+			if not file12.Exists(dir.."_"..tostring(x)) then
 				dir = dir.."_"..tostring(x)
-				file.CreateDir(dir)
+				file12.CreateDir(dir)
 				x = nil
 			end
 		end
 	end
 
-	if file.Exists(dir .. "/" .. filename .. ".txt") then
+	if file12.Exists(dir .. "/" .. filename .. ".txt") then
 		local x = 0
 		while x ~= nil do
 			x = x + 1
-			if not file.Exists(dir.."/"..filename.."_"..tostring(x)..".txt") then
+			if not file12.Exists(dir.."/"..filename.."_"..tostring(x)..".txt") then
 				filename = filename.."_"..tostring(x)
 				x = nil
 			end

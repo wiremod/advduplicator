@@ -89,12 +89,12 @@ usermessage.Hook("AdvDupeHaltUpload", HaltUpload)
 function AdvDupeClient.UpLoadFile( pl, filepath )
 
 	if (AdvDupeClient.sending) or (!AdvDupeClient.CanUpload()) then return end
-	if !file.Exists(filepath)then print("File not found") return end
+	if !file12.Exists(filepath)then print("File not found") return end
 
 	local filename = dupeshare.GetFileFromFilename(filepath)
 
 	//load from file
-	AdvDupeClient.temp2 = file.Read(filepath)
+	AdvDupeClient.temp2 = file12.Read(filepath)
 
 	local compress = dupeshare.ZLib_Installed_SV and dupeshare.ZLib_Installed
 
@@ -217,7 +217,7 @@ function AdvDupeClient.ClientSaveRecievedFile()
 		temp = dupeshare.DeCompress(temp, false, RecieveBuffer.compress)
 	end
 
-	file.Write(filepath, temp)
+	file12.Write(filepath, temp)
 
 	AdvDupeClient.Error( "Your file: \""..filepath.."\" was downloaded from the server", false, true )
 	MsgN("Your file: \""..filepath.."\" was downloaded from the server")
@@ -258,18 +258,18 @@ function AdvDupeClient.FileOpts(action, filename, dir, dir2)
 
 	if (action == "delete") then
 
-		file.Delete(file1)
+		file12.Delete(file1)
 		LocalPlayer():ConCommand("adv_duplicator_updatelist")
 
 	elseif (action == "copy") then
 
 		local file2 = dir2.."/"..filename
-		if file.Exists(file2) then
+		if file12.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir2, filename)
 			AdvDupeClient.Error("File Exists at Destination, Renamed to: "..filename2)
 		end
-		file.Write(file2, file.Read(file1))
+		file12.Write(file2, file12.Read(file1))
 		LocalPlayer():ConCommand("adv_duplicator_updatelist")
 
 	elseif action == "move" then
@@ -279,12 +279,12 @@ function AdvDupeClient.FileOpts(action, filename, dir, dir2)
 
 	elseif (action == "makedir") then
 
-		if file.Exists(file1) and file.IsDir(file1) then
+		if file12.Exists(file1) and file12.IsDir(file1) then
 			AdvDupeClient.Error("Folder Already Exists!")
 			return
 		end
 
-		file.CreateDir(file1)
+		file12.CreateDir(file1)
 		LocalPlayer():ConCommand("adv_duplicator_updatelist")
 
 	elseif action == "rename" then
@@ -295,12 +295,12 @@ function AdvDupeClient.FileOpts(action, filename, dir, dir2)
 	elseif action == "duplicate" then
 
 		local file2 = dir.."/"..dir2 //using dir2 to hold the new filename
-		if file.Exists(file2) then
+		if file12.Exists(file2) then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir, dir2)
 			AdvDupeClient.Error("File Exists With That Name Already, Renamed as: "..filename2)
 		end
-		file.Write(file2, file.Read(file1))
+		file12.Write(file2, file12.Read(file1))
 		LocalPlayer():ConCommand("adv_duplicator_updatelist")
 
 	else
