@@ -532,7 +532,7 @@ function TOOL:AddToGhost()
 	
 	self.UnfinishedGhost = false
 	self:SetPercent(100)
-	timer.Simple(.1, function() AdvDupe.SetPercent( self:GetOwner(), -1) end) --hide progress bar
+	SimpleTimerParams(.1, AdvDupe.SetPercent, self:GetOwner(), -1) --hide progress bar
 end
 
 --
@@ -570,7 +570,7 @@ function TOOL:HideGhost(Hide)
 					ghosts = nil
 				end
 				if ply and ply:IsValid() then
-					timer.Simple(.1, function() AdvDupe.SetPercent( ply, -1 ) end) --hide progress bar
+					SimpleTimerParams(.1, AdvDupe.SetPercent, ply, -1 ) --hide progress bar
 				end
 			end
 		)
@@ -921,7 +921,7 @@ if SERVER then
 		
 		if dir == "" then
 			dir = AdvDupe.GetPlayersFolder(pl)
-		elseif not SinglePlayer() then
+		elseif not game.SinglePlayer() then
 			local plydir = dupeshare.ReplaceBadChar(tostring(pl:SteamID()))
 			plydir = string.gsub(plydir, "STEAM_1", "STEAM_0") -- I think this was needed cause Valve randomly changed everybody's IDs - Jimlad
 			plydir = dupeshare.BaseDir.."/"..plydir
@@ -1128,13 +1128,13 @@ if CLIENT then
 		if menu == "main" or not menu or menu == "" or menu == "serverdir" or menu == "clientupload" then
 			ServerDir = build_serverdir_list(AdvDupeClient.LoadListDirs, AdvDupeClient.LoadListFiles, "adv_duplicator_load_filename", "adv_duplicator_open_dir")
 			if menu == "serverdir" then
-				if not SinglePlayer() then
+				if not game.SinglePlayer() then
 					ServerDir:AddColumn("Source: Server:"..string.gsub(AdvDupeClient.SScdir, AdvDupeClient.MyBaseDir, ""))
 				else
 					ServerDir:AddColumn("Local Source: "..string.gsub(AdvDupeClient.SScdir, dupeshare.BaseDir, ""))
 				end
 			else
-				if not SinglePlayer() then
+				if not game.SinglePlayer() then
 					ServerDir:AddColumn("Server: "..string.gsub(AdvDupeClient.SScdir, AdvDupeClient.MyBaseDir, ""))
 				else
 					ServerDir:AddColumn("Local: "..string.gsub(AdvDupeClient.SScdir, dupeshare.BaseDir, ""))
@@ -1152,7 +1152,7 @@ if CLIENT then
 		end
 		if menu == "serverdir" then
 			ServerDir2 = build_serverdir_list(AdvDupeClient.LoadListDirs, AdvDupeClient.LoadListFiles, "adv_duplicator_load_filename2", "adv_duplicator_open_dir2")
-			if not SinglePlayer() then
+			if not game.SinglePlayer() then
 				ServerDir2:AddColumn("Destination: Server:"..string.gsub(AdvDupeClient.SScdir2, AdvDupeClient.MyBaseDir, ""))
 			else
 				ServerDir2:AddColumn("Local Destination: "..string.gsub(AdvDupeClient.SScdir2, dupeshare.BaseDir, ""))
@@ -1165,19 +1165,19 @@ if CLIENT then
 		
 		--show the current menu
 		if menu == "main" or not menu or menu == "" then
-			if not SinglePlayer() then
+			if not game.SinglePlayer() then
 				local lbl = Label("Server Menu (save and load)")
 				lbl:SetTextColor(color_black)
-				CPanel:AddItem(lbl)
+				CPanel:Add(lbl)
 			else
 				local lbl = Label("Main Menu (save and load)")
 				lbl:SetTextColor(color_black)
-				CPanel:AddItem(lbl)
+				CPanel:Add(lbl)
 			end
 			local obj = {}
 			local bottom = vgui.Create( "ControlPanel")
 			table.insert(obj, bottom:Button("Open", "adv_duplicator_open"))
-			if SinglePlayer() then
+			if game.SinglePlayer() then
 				table.insert(obj, bottom:Button("Save", "adv_duplicator_save_gui"))
 				table.insert(obj, bottom:Button("Open Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir"))
 			else
@@ -1188,18 +1188,18 @@ if CLIENT then
 			end
 			table.insert(obj, bottom:Button("Open Paster Menu", "adv_duplicator_cl_menu", "paster"))
 			if AdvDupeClient.FileLoaded then
-				bottom:AddItem(Label("File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""))
-				bottom:AddItem(Label("Creator: "..AdvDupeClient.LocadedCreator))
-				bottom:AddItem(Label("Desc: "..AdvDupeClient.LocadedDesc))
-				bottom:AddItem(Label("Date: "..AdvDupeClient.LocadedFileFileDate))
-				bottom:AddItem(Label("Time: "..AdvDupeClient.LocadedFileFileTime))
-				bottom:AddItem(Label("NumOfEnts: "..AdvDupeClient.LocadedNumOfEnts))
-				bottom:AddItem(Label("NumOfConst: "..AdvDupeClient.LocadedNumOfConst))
-				bottom:AddItem(Label("FileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")))
+				bottom:Add(Label("File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""))
+				bottom:Add(Label("Creator: "..AdvDupeClient.LocadedCreator))
+				bottom:Add(Label("Desc: "..AdvDupeClient.LocadedDesc))
+				bottom:Add(Label("Date: "..AdvDupeClient.LocadedFileFileDate))
+				bottom:Add(Label("Time: "..AdvDupeClient.LocadedFileFileTime))
+				bottom:Add(Label("NumOfEnts: "..AdvDupeClient.LocadedNumOfEnts))
+				bottom:Add(Label("NumOfConst: "..AdvDupeClient.LocadedNumOfConst))
+				bottom:Add(Label("FileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")))
 			elseif AdvDupeClient.Copied then
-				bottom:AddItem(Label("Unsaved Data Stored in Clipboard"))
+				bottom:Add(Label("Unsaved Data Stored in Clipboard"))
 			else
-				bottom:AddItem(Label("No Data in Clipboard"))
+				bottom:Add(Label("No Data in Clipboard"))
 			end
 			--bottom:CheckBox("Debug Save (larger file):", "adv_duplicator_debugsave")
 			if AdvDupeClient.FileLoaded or AdvDupeClient.Copied then
@@ -1222,23 +1222,23 @@ if CLIENT then
 			
 			bottom:PerformLayout() --do this so bottom:GetTall() will return the correct value
 			
-			CPanel:AddItem(ServerDir)
+			CPanel:Add(ServerDir)
 			ServerDir:SetTall(math.min(ServerDir:GetHeaderHeight() + ServerDir:GetDataHeight()*#ServerDir:GetLines()+20, CPanel:GetParent():GetParent():GetTall()-80-bottom:GetTall()))
-			CPanel:AddItem(bottom)
+			CPanel:Add(bottom)
 			
 		elseif menu == "serverdir" then
 			
 			CPanel:Button( "--Back--", "adv_duplicator_cl_menu", "main")
 			
-			if not SinglePlayer() then
-				CPanel:AddItem(Label("Server Folder Management"))
+			if not game.SinglePlayer() then
+				CPanel:Add(Label("Server Folder Management"))
 			else
-				CPanel:AddItem(Label("Local Folder Management"))
+				CPanel:Add(Label("Local Folder Management"))
 			end
 			
 			local middle = vgui.Create( "ControlPanel")
 			middle:Button("Make New Folder", "adv_duplicator_makedir_gui", "server")
-			if not SinglePlayer() and dupeshare.UsePWSys then
+			if not game.SinglePlayer() and dupeshare.UsePWSys then
 				middle:Button("Add/Change Password for Current Folder", "adv_duplicator_changepass")
 			end
 			middle:Button("Rename", "adv_duplicator_renamefile_gui", "server")
@@ -1250,18 +1250,18 @@ if CLIENT then
 			local listtall = (CPanel:GetParent():GetParent():GetTall()-120-middle:GetTall())/2
 			
 			--1st folder list
-			CPanel:AddItem(ServerDir)
+			CPanel:Add(ServerDir)
 			ServerDir:SetTall(listtall)
 			
-			CPanel:AddItem(middle)
+			CPanel:Add(middle)
 			
 			--2nd folder list
-			CPanel:AddItem(ServerDir2)
+			CPanel:Add(ServerDir2)
 			ServerDir2:SetTall(listtall)
 			
 		elseif menu == "paster" then
 			CPanel:Button("--Back--", "adv_duplicator_cl_menu", "main")
-			CPanel:AddItem(Label("Paster Settings (make with reload)"))
+			CPanel:Add(Label("Paster Settings (make with reload)"))
 			CPanel:NumSlider("Spawn Delay", "adv_duplicator_delay", 0, 100, 1)
 			CPanel:NumSlider("Automatic Undo Delay", "adv_duplicator_undo_delay", 0, 100, 1)
 			CPanel:NumSlider("Range", "adv_duplicator_range", 0, 1000, 0)
@@ -1280,41 +1280,41 @@ if CLIENT then
 		elseif (menu == "clientupload") then
 			CPanel:Button("--Back--", "adv_duplicator_cl_menu", "main")
 			
-			if not SinglePlayer() then
+			if not game.SinglePlayer() then
 			
-				CPanel:AddItem(Label("Upload/Download Menu"))
+				CPanel:Add(Label("Upload/Download Menu"))
 				
-				CPanel:AddItem(Label("Files on Server"))
+				CPanel:Add(Label("Files on Server"))
 				
 				local middle = vgui.Create( "ControlPanel")
 				if AdvDupeClient.downloading then
-					middle:AddItem(Label("==Download in Progress=="))
+					middle:Add(Label("==Download in Progress=="))
 				elseif AdvDupeClient.CanDownload() then
 					middle:Button("Download Selected File", "adv_duplicator_send_cl")
 				else
-					middle:AddItem(Label("Server Disabled Downloads"))
+					middle:Add(Label("Server Disabled Downloads"))
 				end
 				
 				if AdvDupeClient.sending then
-					middle:AddItem(Label("==Upload in Progress=="))
+					middle:Add(Label("==Upload in Progress=="))
 				elseif AdvDupeClient.CanUpload() then
 					middle:Button("Upload File to server", "adv_duplicator_upload_cl")
 				else
-					middle:AddItem(Label("Server Disabled Uploads"))
+					middle:Add(Label("Server Disabled Uploads"))
 				end
-				middle:AddItem(Label("Local Files"))
+				middle:Add(Label("Local Files"))
 				middle:PerformLayout() --do this so bottom:GetTall() will return the correct value
 				
 				local listtall = (CPanel:GetParent():GetParent():GetTall()-170-middle:GetTall())/2
 			
 				--1st folder list
-				CPanel:AddItem(ServerDir)
+				CPanel:Add(ServerDir)
 				ServerDir:SetTall(listtall)
 				
-				CPanel:AddItem(middle)
+				CPanel:Add(middle)
 				
 				--2nd folder list
-				CPanel:AddItem(ClientDir)
+				CPanel:Add(ClientDir)
 				ClientDir:SetTall(listtall)
 				
 				--I don't think this ever worked
@@ -1326,8 +1326,8 @@ if CLIENT then
 			CPanel:Button("--Back--", "adv_duplicator_cl_menu", "clientupload")
 			
 			
-			if not SinglePlayer() then
-				CPanel:AddItem(Label("Local Folder Management"))
+			if not game.SinglePlayer() then
+				CPanel:Add(Label("Local Folder Management"))
 				
 				local middle = vgui.Create( "ControlPanel")
 				middle:Button("Make New Folder", "adv_duplicator_makedir_gui", "client")
@@ -1335,19 +1335,19 @@ if CLIENT then
 				middle:Button("Copy", "adv_duplicator_cl_fileopts", "copy")
 				middle:Button("Move", "adv_duplicator_cl_fileopts", "move")
 				middle:Button("Delete", "adv_duplicator_confirmdelete_gui", "client") --"adv_duplicator_cl_fileopts delete"
-				middle:AddItem(Label("Local Files"))
+				middle:Add(Label("Local Files"))
 				middle:PerformLayout() --do this so bottom:GetTall() will return the correct value
 				
 				local listtall = (CPanel:GetParent():GetParent():GetTall()-120-middle:GetTall())/2
 			
 				--1st folder list
-				CPanel:AddItem(ClientDir)
+				CPanel:Add(ClientDir)
 				ClientDir:SetTall(listtall)
 				
-				CPanel:AddItem(middle)
+				CPanel:Add(middle)
 				
 				--2nd folder list
-				CPanel:AddItem(ClientDir2)
+				CPanel:Add(ClientDir2)
 				ClientDir2:SetTall(listtall)
 			end
 		end
