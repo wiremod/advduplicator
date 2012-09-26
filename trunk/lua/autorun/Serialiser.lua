@@ -474,7 +474,7 @@ function Serialiser.SaveTablesToFile( pl, FileName, Header, ExtraHeader, NumOfEn
 					
 					AdvDupe.UpdateList(pl)
 					AdvDupe.SetPercent(pl, 100)
-					timer.Simple(.1, function() AdvDupe.SetPercent( pl, -1 ) end) -- hide progress bar
+					SimpleTimerParams(.1, AdvDupe.SetPercent, pl, -1 ) -- hide progress bar
 				end
 				
 				AdvDupe.SetPercent(pl, 75)
