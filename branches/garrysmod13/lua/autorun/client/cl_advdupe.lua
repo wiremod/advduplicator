@@ -61,7 +61,7 @@ local function SendSaveDataToServer(offset, last)
 				
 				--Msg("sending last string\n")
 				AdvDupeClient.UpdatePercent( 100 )
-				timer.Simple(.2, AdvDupeClient.UpdatePercent, -1)
+				SimpleTimerParams(.2, AdvDupeClient.UpdatePercent, -1)
 			else
 				str = AdvDupeClient.temp2:sub( SubStrStart, SubStrStart + MaxUploadLength - 1 )
 			end
@@ -74,7 +74,7 @@ local function SendSaveDataToServer(offset, last)
 	if (offset > last) then
 		timer.Simple( 1, function() RunConsoleCommand("DupeRecieveFileContentFinish") end )
 	else
-		timer.Simple( UploadSendDelay, SendSaveDataToServer, offset, last )
+		SimpleTimerParams( UploadSendDelay, SendSaveDataToServer, offset, last )
 	end
 	
 end
@@ -193,7 +193,7 @@ local function ClientRecieveSaveData( um )
 	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
 		--MsgN("recieved last piece")
 		AdvDupeClient.UpdatePercent( 100 )
-		timer.Simple(.5, AdvDupeClient.UpdatePercent, -1)
+		SimpleTimerParams(.5, AdvDupeClient.UpdatePercent, -1)
 		AdvDupeClient.ClientSaveRecievedFile()
 	end
 end
@@ -553,7 +553,7 @@ function AdvDupeClient.MakeDir( pl, command, args )
 			if AdvDupeClient.gui.makedir.key == "MakeDirServer" then
 				local dir = tostring(AdvDupeClient.gui.makedir.txtDir:GetValue())
 				
-				if (dupeshare.UsePWSys) and (!SinglePlayer()) then
+				if (dupeshare.UsePWSys) and (!game.SinglePlayer()) then
 					local pass	= AdvDupeClient.gui.makedir.txtPass:GetValue()
 					LocalPlayer():ConCommand("adv_duplicator_makedir \""..dir.."\" \""..pass.."\"")
 				else
