@@ -837,7 +837,7 @@ end
 function AdvDupe.GetPlayersFolder(ply)
 	local dir = dupeshare.BaseDir
 	
-	if not SinglePlayer() then
+	if not game.SinglePlayer() then
 		local name = dupeshare.ReplaceBadChar(tostring(ply:SteamID()))
 		name = string.gsub(name, "STEAM_1", "STEAM_0") --I think this was needed cause Valve randomly changed everybody's IDs
 		
@@ -870,7 +870,7 @@ function AdvDupe.MakeDir(ply, cmd, args)
 	
 	file.CreateDir(dir)--]]
 	
-	if (dupeshare.UsePWSys) and (!SinglePlayer()) then
+	if (dupeshare.UsePWSys) and (!game.SinglePlayer()) then
 		--todo
 	end
 	
@@ -951,7 +951,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		
 	elseif (action == "makedir") and AdvDupe.CheckPerms(ply, "", dir, "makedir") then
 		
-		if !SinglePlayer() and dupeshare.NamedLikeAPublicDir(filename) then
+		if !game.SinglePlayer() and dupeshare.NamedLikeAPublicDir(filename) then
 			AdvDupe.SendClientError(ply, "You Cannot Name a Folder Like a Public Folder")
 			return
 		end
@@ -991,7 +991,7 @@ end
 --TODO
 function AdvDupe.CheckPerms(ply, dir, password, action)
 	
-	if (dupeshare.UsePWSys) and (!SinglePlayer()) then
+	if (dupeshare.UsePWSys) and (!game.SinglePlayer()) then
 		--todo
 		return true
 	else
@@ -1376,7 +1376,7 @@ function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
 	--local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
 	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
 	--MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
-	timer.Simple( .5, function() AdvDupe.RecieveFileContentSave( ply, filepath ) end)
+	timer.Simple( .5, function() AdvDupe:RecieveFileContentSave( ply, filepath ) end)
 end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
 
@@ -1495,7 +1495,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	--AdvDupe.SendSaveToClientData(ply, 1, last)
 	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
-	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, 1, last ) end)
+	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, 1, last ) end)
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
@@ -1525,7 +1525,7 @@ function AdvDupe.SendSaveToClientData(ply, offset, last)
 	end
 	
 	if ( offset <= last ) then
-		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, offset, last ) end)
+		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, offset, last ) end)
 	else
 		AdvDupe.SendBuffer[ply] = nil --clear this to send again
 		--inform the client they finished downloading in case they didn't notice
@@ -1548,7 +1548,7 @@ local PasteEntsPerTick = 2
 local PostEntityPastePerTick = 20
 local PasteConstsPerTick = 5
 local DelayAfterPaste = 2
-if ( SinglePlayer() ) then --go faster in single players
+if ( game.SinglePlayer() ) then --go faster in single players
 	UseTimedPasteThreshold = 500
 	PasteEntsPerTick = 4
 	PostEntityPastePerTick = 40
@@ -1967,7 +1967,7 @@ function AdvDupe.AddDelayedPaste( Player, EntityList, ConstraintList, HeadEntity
 		CreatedConstraints = {},
 	}
 	
-	if not ValidEntity(Thinger) then
+	if not IsValid(Thinger) then
 		T.Shooting_Ent      = MakeThinger(Player, HideThinger)
 		T.DontRemoveThinger = nil
 	end
@@ -2193,7 +2193,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 				--[[CreatedEntities[ EntID ] = AdvDupe.CreateEntityFromTable( Player, EntTable, EntID, Offset, HoldAngle )
 				
 				if ( CreatedEntities[ EntID ] and CreatedEntities[ EntID ]:IsValid() )
-				and not ( CreatedEntities[ EntID ].AdminSpawnable and !SinglePlayer() and (!Player:IsAdmin( ) or !Player:IsSuperAdmin() ) and DontAllowPlayersAdminOnlyEnts ) then
+				and not ( CreatedEntities[ EntID ].AdminSpawnable and !game.SinglePlayer() and (!Player:IsAdmin( ) or !Player:IsSuperAdmin() ) and DontAllowPlayersAdminOnlyEnts ) then
 					
 					Player:AddCleanup( "duplicates", CreatedEntities[ EntID ] )
 					
@@ -2869,7 +2869,7 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 	
 	local test = GetCaselessEntTable( EntTable.Class )
 	
-	if ( Player:IsAdmin( ) or Player:IsSuperAdmin() or SinglePlayer() or !DontAllowPlayersAdminOnlyEnts ) then
+	if ( Player:IsAdmin( ) or Player:IsSuperAdmin() or game.SinglePlayer() or !DontAllowPlayersAdminOnlyEnts ) then
 		return true
 	elseif ( test and test.t and test.t.AdminSpawnable and !test.t.Spawnable ) then
 		AdvDupe.SendClientError(Player, "Sorry, you can't cheat like that")
@@ -2899,7 +2899,7 @@ end
 
 
 
-if (!SinglePlayer()) then
+if (!game.SinglePlayer()) then
 	local function NoItems(Player, ClassName, EntTable)
 		if ( Player:IsAdmin( ) or Player:IsSuperAdmin() ) then return true end
 		if string.find(ClassName, "^weapon_.*")
