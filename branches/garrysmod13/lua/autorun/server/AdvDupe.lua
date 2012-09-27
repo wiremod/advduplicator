@@ -246,7 +246,7 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 				end
 			end
 			
-			--SimpleTimerParams(.1, Load2NewFile, ply, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
+			--timer.Simple(.1, Load2NewFile, ply, filepath, tool, HeaderTbl, ExtraHeaderTbl, Data)
 			
 			Serialiser.DeserialiseWithHeaders( temp, Load2NewFile, ply, filepath, tool )
 			
@@ -361,11 +361,11 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 		end
 		
 		AdvDupe.SetPercent(ply, 30)
-		SimpleTimerParams(.1, Load3, ply, filepath, tool, temp )
+		timer.Simple(.1, function() Load3( ply, filepath, tool, temp ) end)
 	end
 	
 	AdvDupe.SetPercent(ply, 10)
-	SimpleTimerParams(.1, Load1, ply, filepath, tool, file.Read(dupeshare.ParsePath(filepath), "DATA") or "")
+	timer.Simple(.1, function() Load1( ply, filepath, tool, file.Read(dupeshare.ParsePath(filepath), "DATA") or "") end)
 	
 end
 
@@ -1376,7 +1376,7 @@ function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
 	--local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
 	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
 	--MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
-	SimpleTimerParams( .5, AdvDupe.RecieveFileContentSave, ply, filepath )
+	timer.Simple( .5, function() AdvDupe:RecieveFileContentSave( ply, filepath ) end)
 end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
 
@@ -1495,7 +1495,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	--AdvDupe.SendSaveToClientData(ply, 1, last)
 	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
-	SimpleTimerParams( PlayerSettings[ply].DownloadSendInterval, AdvDupe.SendSaveToClientData, ply, 1, last )
+	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, 1, last ) end)
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
@@ -1525,7 +1525,7 @@ function AdvDupe.SendSaveToClientData(ply, offset, last)
 	end
 	
 	if ( offset <= last ) then
-		SimpleTimerParams( PlayerSettings[ply].DownloadSendInterval, AdvDupe.SendSaveToClientData, ply, offset, last )
+		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, offset, last ) end)
 	else
 		AdvDupe.SendBuffer[ply] = nil --clear this to send again
 		--inform the client they finished downloading in case they didn't notice
@@ -2738,7 +2738,7 @@ function AdvDupe.MakeProp( Player, Pos, Ang, Model, PhysicsObjects, Data )
 	duplicator.DoFlex( Prop, Data.Flex, Data.FlexScale )
 	
 --	if ( Data && !Data.SkipSolidCheck ) then
---		SimpleTimerParams( 0.01, CheckPropSolid, Prop, COLLISION_GROUP_NONE, COLLISION_GROUP_WORLD )
+--		timer.Simple( 0.01, CheckPropSolid, Prop, COLLISION_GROUP_NONE, COLLISION_GROUP_WORLD )
 --	end
 
 	-- Tell the gamemode we just spawned something
