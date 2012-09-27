@@ -532,7 +532,7 @@ function TOOL:AddToGhost()
 	
 	self.UnfinishedGhost = false
 	self:SetPercent(100)
-	SimpleTimerParams(.1, AdvDupe.SetPercent, self:GetOwner(), -1) --hide progress bar
+	timer.Simple(.1, function() AdvDupe.SetPercent( self:GetOwner(), -1) end) --hide progress bar
 end
 
 --
@@ -570,7 +570,7 @@ function TOOL:HideGhost(Hide)
 					ghosts = nil
 				end
 				if ply and ply:IsValid() then
-					SimpleTimerParams(.1, AdvDupe.SetPercent, ply, -1 ) --hide progress bar
+					timer.Simple(.1, function() AdvDupe.SetPercent( ply, -1 ) end) --hide progress bar
 				end
 			end
 		)
