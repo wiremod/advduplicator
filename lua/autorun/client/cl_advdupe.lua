@@ -61,7 +61,7 @@ local function SendSaveDataToServer(offset, last)
 				
 				--Msg("sending last string\n")
 				AdvDupeClient.UpdatePercent( 100 )
-				SimpleTimerParams(.2, AdvDupeClient.UpdatePercent, -1)
+				timer.Simple(.2, function() AdvDupeClient:UpdatePercent(-1) end)
 			else
 				str = AdvDupeClient.temp2:sub( SubStrStart, SubStrStart + MaxUploadLength - 1 )
 			end
@@ -74,7 +74,7 @@ local function SendSaveDataToServer(offset, last)
 	if (offset > last) then
 		timer.Simple( 1, function() RunConsoleCommand("DupeRecieveFileContentFinish") end )
 	else
-		SimpleTimerParams( UploadSendDelay, SendSaveDataToServer, offset, last )
+		timer.Simple( UploadSendDelay, function() SendSaveDataToServer( offset, last ) end)
 	end
 	
 end
@@ -193,7 +193,7 @@ local function ClientRecieveSaveData( um )
 	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
 		--MsgN("recieved last piece")
 		AdvDupeClient.UpdatePercent( 100 )
-		SimpleTimerParams(.5, AdvDupeClient.UpdatePercent, -1)
+		timer.Simple(.5, function() AdvDupeClient:UpdatePercent(-1) end)
 		AdvDupeClient.ClientSaveRecievedFile()
 	end
 end
