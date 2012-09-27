@@ -115,7 +115,7 @@ function ENT:Paste()
 
 	AdvDupe.StartPaste( self:GetPlayer(), self.MyEnts, self.MyConstraints, self.MyHeadEntityIdx, self.offset, angle - self.MyHoldAngle, self.NumOfEnts, self.NumOfConst, self.PasteFrozen, self.PastewoConst, OnPasteFin, true, self, true )
 
-	SimpleTimerParams( AdvDupe.GetPasterClearToPasteDelay(), ClearToPaste, self )
+	timer.Simple( AdvDupe.GetPasterClearToPasteDelay(), function() ClearToPaste( self ) end)
 
 end
 
@@ -141,7 +141,7 @@ function ENT:TriggerInput(iname, value)
 				ent:GetTable():Paste()
 			end
 
-			SimpleTimerParams( self.delay, TimedSpawn, self, pl )
+			timer.Simple( self.delay, function() TimedSpawn( self, pl ) end)
 		end
 	elseif (iname == "Undo") then
 		// Same here
@@ -241,7 +241,7 @@ local function Paste( pl, ent )
 							if (!ent == NULL) then return end
 							ent:Paste()
 						end
-	SimpleTimerParams( delay, TimedSpawn, ent, pl )
+	timer.Simple( delay, function() TimedSpawn( ent, pl ) end)
 end
 
 local function Undo( pl, ent )
