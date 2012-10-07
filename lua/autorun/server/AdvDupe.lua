@@ -854,7 +854,7 @@ end
 
 
 function AdvDupe.MakeDir(ply, cmd, args)
-	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
+	if !IsValid(ply) or !ply:IsPlayer() or !args[1] then return end
 	
 	local dir = AdvDupe[ply].cdir
 	local foldername = dupeshare.ReplaceBadChar(string.Implode(" ", args))
@@ -880,7 +880,7 @@ end
 concommand.Add("adv_duplicator_makedir", AdvDupe.MakeDir)
 
 local function FileOptsCommand(ply, cmd, args)
-	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
+	if !IsValid(ply) or !ply:IsPlayer() or !args[1] then return end
 	
 	local action = args[1]
 	--local filename = dupeshare.GetFileFromFilename(ply:GetInfo( "adv_duplicator_load_filename" ))..".txt"
@@ -896,7 +896,7 @@ concommand.Add("adv_duplicator_fileopts", FileOptsCommand)
 
 local function FileOptsRenameCommand(ply, cmd, args)
 	--Msg("rename cmd\n")
-	if !ply:IsValid() or !ply:IsPlayer() or !args[1] then return end
+	if !IsValid(ply) or !ply:IsPlayer() or !args[1] then return end
 	
 	--local filename = dupeshare.GetFileFromFilename(ply:GetInfo( "adv_duplicator_load_filename" ))..".txt"
 	local filename = ply:GetInfo( "adv_duplicator_load_filename" )
@@ -1007,7 +1007,7 @@ end
 --makes the player see an error
 --todo: make enum error codes
 function AdvDupe.SendClientError(ply, errormsg, NoSound)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() or !errormsg ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() or !errormsg ) then return end
 	MsgN("AdvDupe: Sending this ErrorMsg to ",tostring(ply),"\nAdvDupe-ERROR: \"",tostring(errormsg).."\"")
 	umsg.Start("AdvDupeCLError", ply)
 		umsg.String(errormsg)
@@ -1015,7 +1015,7 @@ function AdvDupe.SendClientError(ply, errormsg, NoSound)
 	umsg.End()
 end
 function AdvDupe.SendClientInfoMsg(ply, msg, NoSound)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() or !msg ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() or !msg ) then return end
 	MsgN("AdvDupe, Sending This InfoMsg to ",tostring(ply),"\nAdvDupe: \"",tostring(msg).."\"")
 	umsg.Start("AdvDupeCLInfo", ply)
 		umsg.String(msg)
@@ -1024,7 +1024,7 @@ function AdvDupe.SendClientInfoMsg(ply, msg, NoSound)
 end
 
 function AdvDupe.UpdateList(ply)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if (tool) then
 		tool:UpdateList()
@@ -1032,14 +1032,14 @@ function AdvDupe.UpdateList(ply)
 end
 
 function AdvDupe.HideGhost(ply, Hide)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if (tool) then
 		tool:HideGhost(Hide)
 	end
 end
 local function AdvDupe_HideGhost( ply, command, args )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( args[1] ) and  ( args[1] == "0" ) then
 		AdvDupe.HideGhost(ply, false)
 	elseif ( args[1] ) and  ( args[1] == "1" ) then
@@ -1049,7 +1049,7 @@ end
 concommand.Add( "adv_duplicator_hideghost", AdvDupe_HideGhost )
 
 function AdvDupe.SetPasting(ply, Pasting)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	AdvDupe[ply] = AdvDupe[ply] or {}
 	AdvDupe[ply].Pasting = Pasting
 	
@@ -1059,7 +1059,7 @@ function AdvDupe.SetPasting(ply, Pasting)
 end
 
 function AdvDupe.SetPercentText( ply, Txt )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	AdvDupe[ply] = AdvDupe[ply] or {}
 	AdvDupe[ply].PercentText = Txt
 	umsg.Start("AdvDupe_Start_Percent", ply)
@@ -1068,14 +1068,14 @@ function AdvDupe.SetPercentText( ply, Txt )
 end
 
 function AdvDupe.SetPercent(ply, Percent)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	umsg.Start("AdvDupe_Update_Percent", ply)
 		umsg.Short(Percent)
 	umsg.End()
 end
 
 function AdvDupe.GetAdvDupeToolObj(ply)
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	--local tool = ply:GetActiveWeapon()
 	if ( !ply:GetActiveWeapon():GetTable().Tool ) then return end
 	local tool = ply:GetActiveWeapon():GetTable().Tool.adv_duplicator.Weapon
@@ -1122,7 +1122,7 @@ local PlayerSettings = {}
 --
 --	uploads
 local function SendUploadSettings( ply, pieces, delay )
-	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( ply ) and ( !IsValid(ply) or !ply:IsPlayer() ) then return end
 	umsg.Start( "AdvDupeUploadSettings", ply )
 		umsg.Short( MaxUploadLength )
 		umsg.Short( pieces )
@@ -1130,7 +1130,7 @@ local function SendUploadSettings( ply, pieces, delay )
 	umsg.End()
 end
 local function SendMaxUploadSize( ply, Kchars )
-	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( ply ) and ( !IsValid(ply) or !ply:IsPlayer() ) then return end
 	umsg.Start( "AdvDupeMaxUploadSize", ply )
 		umsg.Short( Kchars )
 	umsg.End()
@@ -1161,7 +1161,7 @@ function AdvDupe.AdminSettings.DefaultUploadSettings( len, pieces, delay, Kchars
 	end
 end
 function AdvDupe.AdminSettings.UploadSettings( ply, pieces, delay, Kchars )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( type(pieces) != "number" ) or ( type(delay) != "number" ) or ( type(Kchars) != "number" ) then return end
 	pieces = math.floor(pieces)
 	if ( pieces >= 1 ) then PlayerSettings[ply].UploadPiecesPerSend = pieces end
@@ -1170,7 +1170,7 @@ function AdvDupe.AdminSettings.UploadSettings( ply, pieces, delay, Kchars )
 	if ( Kchars ) then AdvDupe.AdminSettings.MaxUploadSize( ply, Kchars ) end
 end
 function AdvDupe.AdminSettings.MaxUploadSize( ply, Kchars )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( type(Kchars) != "number" ) then return end
 	Kchars = math.floor(Kchars)
 	if ( Kchars >= -1 ) then
@@ -1183,14 +1183,14 @@ function AdvDupe.AdminSettings.HaltUpload( ply )
 	umsg.End()
 end
 function AdvDupe.RecieveFileContentStart( ply, cmd, args )
-	if not ply or not ply:IsValid() or not ply:IsAdmin() then return end
+	if not ply or not IsValid(ply) or not ply:IsAdmin() then return end
 	 AdvDupe.AdminSettings.UploadSettings( ply, tonumber(args[1]), tonumber(args[2]), tonumber(args[3] or 0) )
 end
 concommand.Add("AdvDupe_UploadSettings", AdvDupe.RecieveFileContentStart)
 --
 --	downlaods
 local function SendCanDownload( ply, candownload )
-	if ( ply ) and ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( ply ) and ( !IsValid(ply) or !ply:IsPlayer() ) then return end
 	umsg.Start( "AdvDupeCanDownload", ply )
 		umsg.Bool( candownload )
 	umsg.End()
@@ -1212,7 +1212,7 @@ function AdvDupe.AdminSettings.DefaultDownloadSettings( len, pieces, delay, cand
 	end
 end
 function AdvDupe.AdminSettings.DownloadSettings( ply, pieces, delay, candownload )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( type(pieces) != "number" ) or ( type(delay) != "number" ) then return end
 	pieces = math.floor(pieces)
 	if ( pieces >= 1 ) then PlayerSettings[ply].DownloadPiecesPerSend = pieces end
@@ -1220,7 +1220,7 @@ function AdvDupe.AdminSettings.DownloadSettings( ply, pieces, delay, candownload
 	if ( candownload != nil ) then AdvDupe.AdminSettings.SetCanDownload( ply, candownload ) end
 end
 function AdvDupe.AdminSettings.SetCanDownload( ply, candownload )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( candownload ) then PlayerSettings[ply].CanDownload = true
 	else PlayerSettings[ply].CanDownload = false end
 	SendCanDownload( ply, PlayerSettings[ply].CanDownload )
@@ -1266,7 +1266,7 @@ function AdvDupe.AdminSettings.DefaultGhostSettings( normsize, limitsize, delay,
 	end
 end
 function AdvDupe.AdminSettings.GhostSettings( ply, normsize, limitsize, delay, num, limited )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( type(normsize) != "number" ) or ( type(limitsize) != "number" ) or ( type(delay) != "number" ) or ( type(num) != "number" ) then return end
 	normsize = math.floor(normsize)
 	limitsize = math.floor(limitsize)
@@ -1278,7 +1278,7 @@ function AdvDupe.AdminSettings.GhostSettings( ply, normsize, limitsize, delay, n
 	if ( limited != nil ) then AdvDupe.AdminSettings.SetLimitedGhost( ply, limited ) end
 end
 function AdvDupe.AdminSettings.SetLimitedGhost( ply, limited )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	if ( limited ) then PlayerSettings[ply].LimitedGhost = true
 	else PlayerSettings[ply].LimitedGhost = false end
 end
@@ -1286,7 +1286,7 @@ end
 
 --	set defaults for player on join
 function AdvDupe.AdminSettings.SetPlayerToDefault( ply )
-	if ( !ply or !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
 	PlayerSettings[ply] = {}
 	
 	--upload
@@ -1323,7 +1323,7 @@ hook.Add( "PlayerInitialSpawn", "AdvDupePlayerJoinSettings", AdvDupe.AdminSettin
 --	Upload: Recieves file from client
 --
 function AdvDupe.RecieveFileContentStart( ply, cmd, args )
-	if ( !ply:IsValid() or !ply:IsPlayer() ) then return end
+	if ( !IsValid(ply) or !ply:IsPlayer() ) then return end
 	
 	--MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(ply:GetName() or "unknown"))
 	
@@ -1355,7 +1355,7 @@ end
 concommand.Add("DupeRecieveFileContentStart", AdvDupe.RecieveFileContentStart)
 
 function AdvDupe.RecieveFileContent( ply, cmd, args )
-	if ( !ply:IsValid() or !ply:IsPlayer() ) or ( !AdvDupe[ply].tempfile ) or (!args[1]) or (args[1] == "") then return end
+	if ( !IsValid(ply) or !ply:IsPlayer() ) or ( !AdvDupe[ply].tempfile ) or (!args[1]) or (args[1] == "") then return end
 	
 	--Msg("AdvDupe: Recieving piece ")
 	AdvDupe[ply].tempnum = AdvDupe[ply].tempnum + 1
@@ -1371,7 +1371,7 @@ end
 concommand.Add("_DFC", AdvDupe.RecieveFileContent)
 
 function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
-	if (!ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
+	if (!IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
 	
 	--local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
 	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
@@ -1381,7 +1381,7 @@ end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
 
 function AdvDupe.RecieveFileContentSave( ply, filepath )
-	if (!ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
+	if (!IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
 	
 	local expected = AdvDupe[ply].templast
 	local got = AdvDupe[ply].tempnum
@@ -1499,7 +1499,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
-	if (!ply or !ply:IsValid() or !ply:IsPlayer()) or (!AdvDupe.SendBuffer[ply]) then return end
+	if (!ply or !IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe.SendBuffer[ply]) then return end
 	
 	for k=1, PlayerSettings[ply].DownloadPiecesPerSend do --sends three pieces
 		--Msg("AdvDupe: sending piece: "..offset.." / "..last.."\n")
