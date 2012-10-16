@@ -8,8 +8,9 @@ dupeshare.PublicDirs	= { "=Public Folder=" }
 //TODO
 dupeshare.UsePWSys = false //don't change this
 
-require("zlib_b64")
-dupeshare.ZLib_Installed = (zlib != nil)
+-- TODO get this to not print an error
+dupeshare.ZLib_Installed = (pcall(function() require("zlib_b64") end))
+
 if CLIENT then
 	local i
 	if dupeshare.ZLib_Installed then i = "1" else i = "0" end
