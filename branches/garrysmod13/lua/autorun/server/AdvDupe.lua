@@ -2654,7 +2654,7 @@ function AdvDupe.CreateConstraintFromTable( Player, Constraint, EntityList, Offs
 			if ( Constraint.Entity[ i ] ) then
 				if ( Key == "Ent"..i ) or ( Key == "Ent" ) then						
 					if ( Constraint.Entity[ i ].World ) then
-						Val = GetWorldEntity()
+						Val = game.GetWorld()
 					else
 						Val = EntityList[ Constraint.Entity[ i ].Index ] 
 						if (!Val) or (!Val:IsValid()) then
