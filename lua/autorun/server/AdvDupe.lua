@@ -519,6 +519,7 @@ function AdvDupe.GetSaveableEntity( Ent, Offset )
 	--let's junk up the table a little
 	Tab.Angle = Ent:GetAngles()
 	Tab.Pos = Ent:GetPos()
+	Tab.CollisionGroup = Ent:GetCollisionGroup()
 	
 	-- Physics Objects
 	Tab.PhysicsObjects =  Tab.PhysicsObjects or {}
@@ -801,10 +802,8 @@ local function CollisionGroupModifier(ply, Ent, group )
 	
 	if ( group == 19 or group == COLLISION_GROUP_WORLD ) then --COLLISION_GROUP_WORLD is fucked up
 		Ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
-		Ent.CollisionGroup = COLLISION_GROUP_WORLD
 	else
 		Ent:SetCollisionGroup( COLLISION_GROUP_NONE )
-		Ent.CollisionGroup = COLLISION_GROUP_NONE
 	end
 	
 end
