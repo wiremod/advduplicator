@@ -61,7 +61,7 @@ local function SendSaveDataToServer(offset, last)
 				
 				--Msg("sending last string\n")
 				AdvDupeClient.UpdatePercent( 100 )
-				timer.Simple(.2, function() AdvDupeClient:UpdatePercent(-1) end)
+				timer.Simple(.2, function() AdvDupeClient.UpdatePercent(-1) end)
 			else
 				str = AdvDupeClient.temp2:sub( SubStrStart, SubStrStart + MaxUploadLength - 1 )
 			end

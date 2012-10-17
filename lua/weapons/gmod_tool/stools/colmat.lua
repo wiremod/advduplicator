@@ -1,6 +1,6 @@
 
-TOOL.Category		= "(TAD2020's ToolBox)"
-TOOL.Name			= "#Tool_colmat_name"
+TOOL.Category		= "Render"
+TOOL.Name			= "#Tool.colmat.name"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
@@ -15,9 +15,9 @@ TOOL.ClientConVar[ "fx" ]		= 0
 TOOL.ClientConVar[ "LastMatList" ]		= "OverrideMaterialsDefault"
 
 if ( CLIENT ) then
-	language.Add( "Tool_colmat_name",	"ColorMater" )
-	language.Add( "Tool_colmat_desc",	"Changes color and material in one" )
-	language.Add( "Tool_colmat_0", " Left: apply material and color, Right: to remove, Reload: copy" )
+	language.Add( "Tool.colmat.name",	"ColorMater" )
+	language.Add( "Tool.colmat.desc",	"Changes color and material in one" )
+	language.Add( "Tool.colmat.0", " Left: apply material and color, Right: to remove, Reload: copy" )
 	language.Add( "Tool_colmat_material", "Material:" )
 	language.Add( "Tool_colmat_materiallist", "Material List:" )
 	language.Add( "Tool_colmat_spawned", "Apply to spawned props:" )
@@ -33,7 +33,10 @@ local function SetMaterial( Player, Entity, Data )
 end
 
 local function SetColour( Player, Entity, Data )
-	if ( Data.Color ) then Entity:SetColor( Data.Color.r, Data.Color.g, Data.Color.b, Data.Color.a ) end
+	if ( Data.Color ) then 
+		Entity:SetColor( Data.Color )
+		if Data.Color.a != 255 and Data.RenderMode == 0 then Data.RenderMode = 1 end
+	end
 	if ( Data.RenderMode ) then Entity:SetRenderMode( Data.RenderMode ) end
 	if ( Data.RenderFX ) then Entity:SetKeyValue( "renderfx", Data.RenderFX ) end
 	if ( SERVER ) then duplicator.StoreEntityModifier( Entity, "colour", Data ) end
@@ -78,14 +81,14 @@ function TOOL:Reload( trace )
 	if (CLIENT) then return true end
 
 	local mat = trace.Entity:GetMaterial()
-	local r,g,b,a = trace.Entity:GetColor()
+	local col = trace.Entity:GetColor()
 	local fx = trace.Entity:GetKeyValues().renderfx or 0
 
 	self:GetOwner():ConCommand("colmat_material "..mat)
-	self:GetOwner():ConCommand("colmat_r "..r)
-	self:GetOwner():ConCommand("colmat_g "..g)
-	self:GetOwner():ConCommand("colmat_b "..b)
-	self:GetOwner():ConCommand("colmat_a "..a)
+	self:GetOwner():ConCommand("colmat_r "..col.r)
+	self:GetOwner():ConCommand("colmat_g "..col.g)
+	self:GetOwner():ConCommand("colmat_b "..col.b)
+	self:GetOwner():ConCommand("colmat_a "..col.a)
 	self:GetOwner():ConCommand("colmat_mode ".."0") --we can't get render mode so reset it to 0
 	self:GetOwner():ConCommand("colmat_fx "..fx)
 
@@ -95,14 +98,14 @@ end
 
 if ( CLIENT ) then
 	function ColMat_UpdateControlPanel( ListName , CPanel )
-		if (!CPanel) then CPanel = GetControlPanel( "colmat" ) end
+		if (!CPanel) then CPanel = controlpanel.Get( "colmat" ) end
 		if (!CPanel) then return end
 
 		LastMatList = ListName
 
 		CPanel:ClearControls()
 
-		CPanel:AddControl( "Header", { Text = "#Tool_colmat_name", Description	= "#Tool_colmat_desc" }  )
+		CPanel:AddControl( "Header", { Text = "#Tool.colmat.name", Description	= "#Tool.colmat.desc" }  )
 
 
 		CPanel:AddControl("ComboBox", {
@@ -223,7 +226,7 @@ end
 
 function TOOL.BuildCPanel( CPanel )
 
-	CPanel:AddControl( "Header", { Text = "#Tool_colmat_name", Description	= "#Tool_colmat_desc" }  )
+	CPanel:AddControl( "Header", { Text = "#Tool.colmat.name", Description	= "#Tool.colmat.desc" }  )
 
 	ColMat_UpdateControlPanel( LastMatList, CPanel )
 
