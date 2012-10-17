@@ -1175,7 +1175,7 @@ if CLIENT then
 				CPanel:AddItem(lbl)
 			end
 			local obj = {}
-			local bottom = vgui.Create( "ControlPanel")
+			local bottom = vgui.Create( "DForm")
 			table.insert(obj, bottom:Button("Open", "adv_duplicator_open"))
 			if game.SinglePlayer() then
 				table.insert(obj, bottom:Button("Save", "adv_duplicator_save_gui"))
@@ -1219,13 +1219,16 @@ if CLIENT then
 					v.Label:SetTextColor(color_black)
 				end
 			end
-			
-			bottom:PerformLayout() --do this so bottom:GetTall() will return the correct value
-			
 			CPanel:AddItem(ServerDir)
-			ServerDir:SetTall(math.min(ServerDir:GetHeaderHeight() + ServerDir:GetDataHeight()*#ServerDir:GetLines()+20, CPanel:GetParent():GetParent():GetTall()-80-bottom:GetTall()))
-			CPanel:AddItem(bottom)
 			
+			-- Calculate height of the list of dupes
+			bottom:PerformLayout() --do this so bottom:GetTall() will return the correct value -- Still not returning correct value in Gmod13 Beta v39
+			local bottomtall = bottom:GetTall()
+			for k,v in pairs(bottom.Items) do bottomtall = bottomtall + v:GetTall() + 8 end
+			-- Clamp *ScrH() - how much space the bottom section needs* between *5 lines* and *20 lines*
+			ServerDir:SetTall(math.Clamp(CPanel:GetParent():GetParent():GetTall()-64-bottomtall,ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*5, ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*#ServerDir:GetLines()))
+			
+			CPanel:AddItem(bottom)
 		elseif menu == "serverdir" then
 			
 			CPanel:Button( "--Back--", "adv_duplicator_cl_menu", "main")
