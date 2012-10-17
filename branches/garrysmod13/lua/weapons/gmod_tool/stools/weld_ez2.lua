@@ -1,22 +1,22 @@
 
-TOOL.Category		= "(TAD2020's ToolBox)"
+TOOL.Category		= "Constraints"
 TOOL.Name			= "#Weld - Easy w/ Snapping"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
 if ( CLIENT ) then
-    language.Add( "Tool_weld_ez2_name", "Easy Weld Constraint w/ Snapping" )
-    language.Add( "Tool_weld_ez2_desc", "Same as easy weld execpt with angle snapping" )
-    language.Add( "Tool_weld_ez2_0", "Click on a wall, prop or a ragdoll" )
-	language.Add( "Tool_weld_ez2_1", "Now click on something else to weld it to" )
-	language.Add( "Tool_weld_ez2_2", "Now move your mouse to rotate the prop (shift/run to snap at 45s) and click to finish" )
+    language.Add( "Tool.weld_ez2.name", "Easy Weld Constraint w/ Snapping" )
+    language.Add( "Tool.weld_ez2.desc", "Same as easy weld execpt with angle snapping" )
+    language.Add( "Tool.weld_ez2.0", "Click on a wall, prop or a ragdoll" )
+	language.Add( "Tool.weld_ez2.1", "Now click on something else to weld it to" )
+	language.Add( "Tool.weld_ez2.2", "Now move your mouse to rotate the prop (shift/run to snap at 45s) and click to finish" )
 end
 
 TOOL.ClientConVar[ "forcelimit" ]	= "0"
 TOOL.ClientConVar[ "nocollide" ]	= "0"
 
-local ang1 = 0
-local axis2 = 0
+local ang1 = Angle()
+local axis2 = Vector()
 local degrees = 0
 
 function TOOL:LeftClick( trace )
@@ -105,7 +105,7 @@ function TOOL:LeftClick( trace )
 		local Ang1, Ang2 = Norm1:Angle(), (Norm2 * -1):Angle()
 		local TargetAngle = Phys1:AlignAngles( Ang1, Ang2 )
 
-		Phys1:SetAngle( TargetAngle )
+		Phys1:SetAngles( TargetAngle )
 
 		// Move the object so that the hitpos on our object is at the second hitpos
 		local TargetPos = WPos2 + (Phys1:GetPos() - self:GetPos(1)) + (Norm2)
@@ -190,7 +190,7 @@ function TOOL:Think()
 			local Ang = Angle(ang1.p,ang1.y,ang1.r)
 			--Norm2
 			Ang:RotateAroundAxis(axis2, ra)
-			Phys1:SetAngle( Ang )
+			Phys1:SetAngles( Ang )
 
 			// Move so spots join up
 			local TargetPos = WPos2 + (Phys1:GetPos() - self:GetPos(1)) + (Norm2)
@@ -259,8 +259,8 @@ function TOOL.BuildCPanel(panel)
 	})
 
 	panel:AddControl("Slider", {
-		Label = "#EasyWeldTool_forcelimit",
-		Description = "#EasyWeldTool_forcelimit_desc",
+		Label = "#Force Limit",
+		Description = "#Force Limit",
 		Type = "Float",
 		Min = "0",
 		Max = "1000",
