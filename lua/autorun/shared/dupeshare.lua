@@ -281,7 +281,7 @@ end
 
 //checks if the player's active weapon is a duplicator
 function dupeshare.CurrentToolIsDuplicator(tool)
-	if (tool) and (tool:GetClass() == "gmod_tool" ) and ( tool:GetTable():GetToolObject() )
+	if IsValid(tool) and (tool:GetClass() == "gmod_tool" ) and ( tool:GetTable():GetToolObject() )
 	and (tool:GetTable():GetToolObject().Name == "#AdvancedDuplicator") then
 		return true
 	else
