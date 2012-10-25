@@ -1375,7 +1375,7 @@ function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
 	--local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
 	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
 	--MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
-	timer.Simple( .5, function() AdvDupe:RecieveFileContentSave( ply, filepath ) end)
+	timer.Simple( .5, function() AdvDupe.RecieveFileContentSave( ply, filepath ) end)
 end
 concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
 
@@ -1494,7 +1494,7 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	--AdvDupe.SendSaveToClientData(ply, 1, last)
 	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
-	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, 1, last ) end)
+	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, 1, last ) end)
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
@@ -1524,7 +1524,7 @@ function AdvDupe.SendSaveToClientData(ply, offset, last)
 	end
 	
 	if ( offset <= last ) then
-		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe:SendSaveToClientData( ply, offset, last ) end)
+		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, offset, last ) end)
 	else
 		AdvDupe.SendBuffer[ply] = nil --clear this to send again
 		--inform the client they finished downloading in case they didn't notice
@@ -2558,11 +2558,13 @@ function AdvDupe.CreateEntityFromTable( Player, EntTable, ID, Offset, HoldAngle 
 	
 	local NewPos, NewAngle = LocalToWorld( EntTable.LocalPos, EntTable.LocalAngle, Offset, HoldAngle )
 	EntTable.Pos = NewPos
+	EntTable.Angles = NewAngle
 	EntTable.Angle = NewAngle
 	if ( EntTable.PhysicsObjects ) then
 		for Num, Object in pairs( EntTable.PhysicsObjects ) do
 			local NewPos, NewAngle = LocalToWorld( Object.LocalPos, Object.LocalAngle, Offset, HoldAngle )
 			Object.Pos = NewPos
+			Object.Angles = NewAngle
 			Object.Angle = NewAngle
 		end
 	end

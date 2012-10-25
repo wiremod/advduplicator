@@ -9,7 +9,7 @@ dupeshare.PublicDirs	= { "=Public Folder=" }
 dupeshare.UsePWSys = false //don't change this
 
 -- TODO get this to not print an error
-dupeshare.ZLib_Installed = (pcall(function() require("zlib_b64") end))
+//dupeshare.ZLib_Installed = (pcall(function() require("zlib_b64") end))
 
 if CLIENT then
 	local i
@@ -281,7 +281,7 @@ end
 
 //checks if the player's active weapon is a duplicator
 function dupeshare.CurrentToolIsDuplicator(tool)
-	if (tool) and (tool:GetClass() == "gmod_tool" ) and ( tool:GetTable():GetToolObject() )
+	if IsValid(tool) and (tool:GetClass() == "gmod_tool" ) and ( tool:GetTable():GetToolObject() )
 	and (tool:GetTable():GetToolObject().Name == "#AdvancedDuplicator") then
 		return true
 	else

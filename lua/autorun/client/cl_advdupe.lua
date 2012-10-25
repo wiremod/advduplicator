@@ -119,7 +119,7 @@ end
 local function SendOK(um)
 	AdvDupeClient.SetPercentText( "Uploading" )
 	
-	timer.Simple( 0.2, SendSaveDataToServer, 1, AdvDupeClient.temp2last ) --TODO: wait from server ok to start uploading
+	timer.Simple( 0.2, function() SendSaveDataToServer(1, AdvDupeClient.temp2last ) end)--TODO: wait from server ok to start uploading
 	
 	AdvDupeClient.sending = true
 	AdvDuplicator_UpdateControlPanel()
@@ -193,7 +193,7 @@ local function ClientRecieveSaveData( um )
 	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
 		--MsgN("recieved last piece")
 		AdvDupeClient.UpdatePercent( 100 )
-		timer.Simple(.5, function() AdvDupeClient:UpdatePercent(-1) end)
+		timer.Simple(.5, function() AdvDupeClient.UpdatePercent(-1) end)
 		AdvDupeClient.ClientSaveRecievedFile()
 	end
 end
