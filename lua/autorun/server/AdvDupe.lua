@@ -2559,11 +2559,13 @@ function AdvDupe.CreateEntityFromTable( Player, EntTable, ID, Offset, HoldAngle 
 	local NewPos, NewAngle = LocalToWorld( EntTable.LocalPos, EntTable.LocalAngle, Offset, HoldAngle )
 	EntTable.Pos = NewPos
 	EntTable.Angles = NewAngle
+	EntTable.Angle = NewAngle
 	if ( EntTable.PhysicsObjects ) then
 		for Num, Object in pairs( EntTable.PhysicsObjects ) do
 			local NewPos, NewAngle = LocalToWorld( Object.LocalPos, Object.LocalAngle, Offset, HoldAngle )
 			Object.Pos = NewPos
 			Object.Angles = NewAngle
+			Object.Angle = NewAngle
 		end
 	end
 	
