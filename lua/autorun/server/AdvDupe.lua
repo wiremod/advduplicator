@@ -1177,10 +1177,6 @@ function AdvDupe.AdminSettings.MaxUploadSize( ply, Kchars )
 		SendMaxUploadSize( ply, Kchars )
 	end
 end
-function AdvDupe.AdminSettings.HaltUpload( ply )
-	umsg.Start( "AdvDupeHaltUpload", ply )
-	umsg.End()
-end
 function AdvDupe.RecieveFileContentStart( ply, cmd, args )
 	if not ply or not IsValid(ply) or not ply:IsAdmin() then return end
 	 AdvDupe.AdminSettings.UploadSettings( ply, tonumber(args[1]), tonumber(args[2]), tonumber(args[3] or 0) )
@@ -1321,122 +1317,67 @@ hook.Add( "PlayerInitialSpawn", "AdvDupePlayerJoinSettings", AdvDupe.AdminSettin
 --
 --	Upload: Recieves file from client
 --
-function AdvDupe.RecieveFileContentStart( ply, cmd, args )
-	if ( !IsValid(ply) or !ply:IsPlayer() ) then return end
-	
-	--MsgN("AdvDupe: Ready to recieve file: \"",args[2],"\" from player: ",(ply:GetName() or "unknown"))
-	
-	if ( !CanUpload( ply ) ) then
-		MsgN("player \"",tostring(ply),"\" not allowed to upload")
+util.AddNetworkString("AdvDupeUploadOK")
+util.AddNetworkString("AdvDupeUploadStart")
+util.AddNetworkString("AdvDupeUploadData")
+net.Receive("AdvDupeUploadStart", function(netlen, ply)
+	if not ply:IsValid() then return end
+	if not CanUpload( ply ) then
+		MsgN("player ",tostring(ply)," not allowed to upload")
 		return
 	end
 	
-	if (!AdvDupe[ply]) then AdvDupe[ply] = {} end
-	
-	AdvDupe[ply].templast		= tonumber(args[1])
-	AdvDupe[ply].tempfile		= nil
-	if ( GetMaxUpload(ply) > 0 and (AdvDupe[ply].templast - 1) * MaxUploadLength > GetMaxUpload(ply) ) then
-		MsgN("player \"",tostring(ply),"\" is trying to upload over ",(AdvDupe[ply].templast - 1) * MaxUploadLength," then limit is ",MaxUploadSize)
+	if not AdvDupe[ply] then AdvDupe[ply] = {} end
+	AdvDupe[ply].uploadLast = net.ReadUInt(16)
+	if ( GetMaxUpload(ply) > 0 and (AdvDupe[ply].uploadLast - 1) * 64000 > GetMaxUpload(ply) ) then
+		MsgN("player ",tostring(ply)," is trying to upload over ",(AdvDupe[ply].uploadLast - 1) * 64000," the limit is ",GetMaxUpload(ply))
 		SendMaxUploadSize( ply ) --tell the player what the max is
-		AdvDupe.AdminSettings.HaltUpload( ply )
+		net.Start("AdvDupeUploadOK") net.WriteBit(false) net.Send(ply)
 		return
 	end
-	AdvDupe[ply].tempdir			= AdvDupe[ply].cdir --upload into curent open dir
-	AdvDupe[ply].tempfilename	= args[2]
-	AdvDupe[ply].tempnum			= 0
-	AdvDupe[ply].tempfile		= {}
-	AdvDupe[ply].compress		= (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	--MsgN("compress = ",AdvDupe[ply].compress)
 	
-	umsg.Start("AdvDupeClientSendOK", ply)
-	umsg.End()
-end
-concommand.Add("DupeRecieveFileContentStart", AdvDupe.RecieveFileContentStart)
+	AdvDupe[ply].uploadFilename = net.ReadString()
+	AdvDupe[ply].uploadBuffer = ""
+	AdvDupe[ply].uploadDir = AdvDupe[ply].cdir
+	
+	net.Start("AdvDupeUploadOK") net.WriteBit(true) net.Send(ply)
+end)
 
-function AdvDupe.RecieveFileContent( ply, cmd, args )
-	if ( !IsValid(ply) or !ply:IsPlayer() ) or ( !AdvDupe[ply].tempfile ) or (!args[1]) or (args[1] == "") then return end
+net.Receive("AdvDupeUploadData", function(netlen, ply)
+	if not ply:IsValid() or not AdvDupe[ply].uploadBuffer then return end
 	
-	--Msg("AdvDupe: Recieving piece ")
-	AdvDupe[ply].tempnum = AdvDupe[ply].tempnum + 1
-	--Msg(args[1].." / "..AdvDupe[ply].templast.." received: "..AdvDupe[ply].tempnum.."\n")
+	local datalen = net.ReadUInt(16)
+	AdvDupe[ply].uploadBuffer = AdvDupe[ply].uploadBuffer .. net.ReadData(datalen)
 	
-	AdvDupe[ply].tempfile[tonumber(args[1])] = args[2]
-	
-	if (AdvDupe[ply].templast == AdvDupe[ply].tempnum) then
-		AdvDupe.RecieveFileContentFinish( ply )
+	if net.ReadBit() != 0 then
+		local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].uploadDir, AdvDupe[ply].uploadFilename )
+		AdvDupe.RecieveFileContentSave( ply, filepath )
 	end
-	
-end
-concommand.Add("_DFC", AdvDupe.RecieveFileContent)
-
-function AdvDupe.RecieveFileContentFinish( ply, cmd, args )
-	if (!IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
-	
-	--local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe.GetPlayersFolder(ply), AdvDupe[ply].tempfilename )
-	local filepath = dupeshare.FileNoOverWriteCheck( AdvDupe[ply].tempdir, AdvDupe[ply].tempfilename )
-	--MsgN("AdvDupe: Saving ",(ply:GetName() or "unknown"),"'s recieved file to ",filepath)
-	timer.Simple( .5, function() AdvDupe.RecieveFileContentSave( ply, filepath ) end)
-end
-concommand.Add("DupeRecieveFileContentFinish", AdvDupe.RecieveFileContentFinish)
+end)
 
 function AdvDupe.RecieveFileContentSave( ply, filepath )
-	if (!IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe[ply].tempfile) then return end
+	if not ply:IsValid() or not AdvDupe[ply].uploadBuffer then return end
 	
-	local expected = AdvDupe[ply].templast
-	local got = AdvDupe[ply].tempnum
+	local uploaded = util.Decompress(AdvDupe[ply].uploadBuffer)
 	local FileName = dupeshare.GetFileFromFilename( filepath )
 	
-	if (expected != got) then
-		--reassemble the pieces
-		local txt = "AdvDupe: Missing piece(s): " 
-		for i = 1,expected do
-			if (!AdvDupe[ply].tempfile[i]) then
-				txt = txt .. i .. ", "
-			end
-		end
-		--MsgN(txt)
-		
-		AdvDupe.SendClientError(ply, "ERROR: \""..FileName.."\", failed uploading", true)
-		AdvDupe.SendClientError(ply, "Server expected "..expected.." pieces but got "..got)
+	if not uploaded then
+		AdvDupe.SendClientError(ply, "ERROR: '"..FileName.."', failed uploading", true)
 		AdvDupe.SendClientInfoMsg(ply, "Try resending it.", true)
 		
-		ply:PrintMessage(HUD_PRINTCONSOLE, "AdvDupeERROR: Your file, \""..FileName.."\", was not recieved properly\nAdvDupe: server expected "..expected.." pieces but got "..got)
-		MsgN("AdvDupe: This file, \"",filepath,"\", was not recieved properly\nAdvDupe: expected: ",expected," pieces but got: ",got)
-		
-		umsg.Start("AdvDupeClientSendFinishedFailed", ply)
-		umsg.End()
-		
-		return
-	end
-	
-	--reassemble the pieces
-	local temp = table.concat(AdvDupe[ply].tempfile)
-	
-	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
-		--MsgN("AdvDupe, RecieveFileContentSave: save compressed file")
-		if AdvDupe[ply].compress then
-			temp = "[zlib_b64]"..temp
-		else
-			temp = "[zlib_b64]"..dupeshare.Compress(temp, false, true)
-		end
+		ply:PrintMessage(HUD_PRINTCONSOLE, "AdvDupeERROR: Your file, '"..FileName.."', was not recieved properly")
+		MsgN("AdvDupe: This file, '",filepath,"', was not recieved properly")
 	else
-		temp = dupeshare.DeCompress(temp, true, AdvDupe[ply].compress)
+	
+		file.Write(dupeshare.ParsePath(filepath), uploaded)
+		AdvDupe[ply].uploadBuffer = nil
+		
+		AdvDupe.SendClientInfoMsg(ply, "Your file: '"..FileName.."' was uploaded to the server")
+		ply:PrintMessage(HUD_PRINTCONSOLE, "Your file: '"..FileName.."' was uploaded to the server")
+		
+		AdvDupe.UpdateList(ply)
 	end
-	
-	file.Write(dupeshare.ParsePath(filepath), temp)
-	
-	AdvDupe[ply].tempfile = nil
-	
-	--ply:PrintMessage(HUD_PRINTTALK, "Your file: \""..filepath.."\" was uploaded to the server")
-	AdvDupe.SendClientInfoMsg(ply, "Your file: \""..FileName.."\" was uploaded to the server")
-	ply:PrintMessage(HUD_PRINTCONSOLE, "Your file: \""..FileName.."\" was uploaded to the server")
-	
-	--MsgN("player: \"",(ply:GetName() or "unknown"),"\" uploaded file: \"",filepath,"\"")
-	
-	AdvDupe.UpdateList(ply)
-	
-	umsg.Start("AdvDupeClientSendFinished", ply)
-	umsg.End()
+	net.Start("AdvDupeUploadOK") net.WriteBit(false) net.Send(ply)
 end
 
 
@@ -1445,11 +1386,8 @@ end
 --
 --	Download: Sends a file to the client
 --
---[[function AdvDupe.SaveAndSendSaveToClient( ply, filename, desc )
-	local filepath = AdvDupe.SaveToFile( ply, filename, desc )
-	AdvDupe.SendSaveToClient( ply, filepath )
-end--]]
-
+util.AddNetworkString("AdvDupeDownloadStart")
+util.AddNetworkString("AdvDupeDownloadData")
 AdvDupe.SendBuffer = {}
 function AdvDupe.SendSaveToClient( ply, filename )
 	if ( !CanDownload( ply ) ) then return end
@@ -1471,67 +1409,39 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	filename = dupeshare.GetFileFromFilename(filepath)
 	
-	AdvDupe.SendBuffer[ply] = file.Read(dupeshare.ParsePath(filepath)) or ""
+	AdvDupe.SendBuffer[ply] = util.Compress(file.Read(dupeshare.ParsePath(filepath)) or "")
 	
-	local compress = (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	--MsgN("Compress = ",compress)
+	-- Consider compression
 	
-	AdvDupe.SendBuffer[ply] = dupeshare.Compress(AdvDupe.SendBuffer[ply], false, compress)
+	local last = math.ceil(#AdvDupe.SendBuffer[ply] / 64000)
 	
-	if AdvDupe.SendBuffer[ply] == nil then return end
+	net.Start("AdvDupeDownloadStart")
+		net.WriteUInt(last,16)
+		net.WriteString(filename)
+	net.Send(ply)
 	
-	local len = string.len(AdvDupe.SendBuffer[ply])
-	local last = math.ceil(len / MaxDownloadLength)
-	
-	umsg.Start("AdvDupeRecieveSaveStart", ply)
-		umsg.Short(last)
-		umsg.String(filename)
-		umsg.Bool(compress)
-		--umsg.String(ndir)
-	umsg.End()
-	--MsgN("AdvDupe: sending file \"",filename,".txt\" in ",tostring(last)," pieces. len: ",tostring(len))
-	--AdvDupe.SetPercentText( ply, "Downloading" )
-	
-	--AdvDupe.SendSaveToClientData(ply, 1, last)
-	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
-	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, 1, last ) end)
+	AdvDupe.SendSaveToClientData( ply, 1, last )
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
-	if (!ply or !IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe.SendBuffer[ply]) then return end
-	
-	for k=1, PlayerSettings[ply].DownloadPiecesPerSend do --sends three pieces
-		--Msg("AdvDupe: sending piece: "..offset.." / "..last.."\n")
+	if not IsValid(ply) or not AdvDupe.SendBuffer[ply] then return end
 		
-		local SubStrStart = (offset - 1) * MaxDownloadLength
-		local str = ""
-		if ( offset == last ) then
-			--umsg.String(string.Right(AdvDupe[ply].temp, (len - ((last - 2) * MaxDownloadLength))))
-			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart )
-			--Msg("AdvDupe: send last piece\n")
-		else
-			--umsg.String(string.Right(string.Left(AdvDupe[ply].temp, ((offset + k) * MaxDownloadLength)),MaxDownloadLength))
-			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + MaxDownloadLength - 1 )
-		end
-		
-		umsg.Start("AdvDupeRecieveSaveData", ply)
-			umsg.Short(offset) --cause sometimes these are reccieved out of order
-			umsg.String( str )
-		umsg.End()
-		
+	local SubStrStart = (offset - 1) * 64000
+	net.Start("AdvDupeDownloadData")
+		local towrite = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + 64000 - 1 )
+		net.WriteUInt(#towrite, 16)
+		net.WriteData(towrite, #towrite)
 		offset = offset + 1
-		if ( offset > last ) then break end
-	end
-	
-	if ( offset <= last ) then
-		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, offset, last ) end)
-	else
-		AdvDupe.SendBuffer[ply] = nil --clear this to send again
-		--inform the client they finished downloading in case they didn't notice
-		umsg.Start("AdvDupeClientDownloadFinished", ply)
-		umsg.End()
-	end
-	
+		if offset <= last then
+			net.WriteBit(false) -- Not last chunk
+			timer.Create( "AdvDupe.SendSaveToClientData_"..ply:UniqueID(), 0.5, 1, function()
+				AdvDupe.SendSaveToClientData( ply, offset, last ) 
+			end)
+		else
+			net.WriteBit(true) -- This is the last chunk
+			AdvDupe.SendBuffer[ply] = nil --clear this to send again
+		end
+	net.Send(ply)
 end
 
 
