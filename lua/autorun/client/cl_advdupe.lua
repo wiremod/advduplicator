@@ -157,80 +157,44 @@ usermessage.Hook("AdvDupeClientSendFinishedFailed", SendFinishedFailed)
 //
 //	Download functions
 //
-local RecieveBuffer = {}
-local function ClientRecieveSaveStart( um )
-	--Msg("=========  ClientRecieveSaveStart  ==========\n")
-	RecieveBuffer = {}
-	RecieveBuffer.pieces = {}
+local receiveBuffer, receiveDir, receiveFilename = "", "", ""
+local receiveLast, receiveCurrent = 0,0
+net.Receive("AdvDupeDownloadStart",function(len)
+	receiveBuffer = ""
+	receiveCurrent = 0
+	receiveLast = net.ReadUInt(16)
+	receiveFilename = net.ReadString()
+	receiveDir = AdvDupeClient.CLcdir
 	
-	RecieveBuffer.numofpieces	= um:ReadShort()
-	RecieveBuffer.filename		= um:ReadString()
-	RecieveBuffer.compress		= um:ReadBool()
-	RecieveBuffer.dir			= AdvDupeClient.CLcdir
-	
-	RecieveBuffer.recievedpieces = 0
 	AdvDupeClient.downloading = true
 	AdvDuplicator_UpdateControlPanel()
-	
-	--Msg("AdvDupeClient: Clear to recieve file \""..RecieveBuffer.filename.."\" in "..RecieveBuffer.numofpieces.." pieces\n")
-	--Msg("NumToRecieve= "..AdvDupeClient.temp.numofpieces.."\n==========\n")
 	AdvDupeClient.SetPercentText( "Downloading" )
-end
-usermessage.Hook("AdvDupeRecieveSaveStart", ClientRecieveSaveStart)
+	AdvDupeClient.UpdatePercent(10)
+end)
 
-local function ClientRecieveSaveData( um )
-	local piece	= um:ReadShort()
-	local temp	= um:ReadString()
-	RecieveBuffer.recievedpieces = RecieveBuffer.recievedpieces + 1
+net.Receive("AdvDupeDownloadData",function(len)
+	local datalength = net.ReadUInt(16)
+	receiveBuffer = receiveBuffer .. net.ReadData(datalength)
+	receiveCurrent = receiveCurrent + 1
 	
-	--Msg("getting file data, piece: "..piece.." of "..RecieveBuffer.numofpieces.."\n")
 	if ( AdvDupeClient.PercentText == "Downloading" ) then
-		AdvDupeClient.UpdatePercent( math.ceil( piece / RecieveBuffer.numofpieces * 100 ) )
+		AdvDupeClient.UpdatePercent( math.ceil( receiveCurrent / receiveLast * 100 ) )
 	end
-	
-	RecieveBuffer.pieces[piece] = temp
-	
-	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
-		--MsgN("recieved last piece")
-		AdvDupeClient.UpdatePercent( 100 )
+	if net.ReadBit() != 0 then
+		local filepath, filename = dupeshare.FileNoOverWriteCheck( receiveDir, receiveFilename )
+		
+		file.Write(filepath, util.Decompress(receiveBuffer) or "")
+		
+		AdvDupeClient.Error( "Your file: \""..filepath.."\" was downloaded from the server", false, true )
+		MsgN("Your file: \""..filepath.."\" was downloaded from the server")
+		
+		RunConsoleCommand("adv_duplicator_updatelist")
 		timer.Simple(.5, function() AdvDupeClient.UpdatePercent(-1) end)
-		AdvDupeClient.ClientSaveRecievedFile()
+		AdvDupeClient.downloading = false
+		AdvDuplicator_UpdateControlPanel()
 	end
-end
-usermessage.Hook("AdvDupeRecieveSaveData", ClientRecieveSaveData)
+end)
 
-function AdvDupeClient.ClientSaveRecievedFile()
-	
-	local filepath, filename = dupeshare.FileNoOverWriteCheck( RecieveBuffer.dir, RecieveBuffer.filename )
-	
-	//reassemble the pieces
-	local temp = table.concat(RecieveBuffer.pieces)
-	
-	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
-		--MsgN("AdvDupe, ClientSaveRecievedFile: save compressed file")
-		if RecieveBuffer.compress then
-			temp = "[zlib_b64]"..temp
-		else
-			temp = "[zlib_b64]"..dupeshare.Compress(temp, false, true)
-		end
-	else
-		temp = dupeshare.DeCompress(temp, false, RecieveBuffer.compress)
-	end
-	
-	file.Write(filepath, temp)
-	
-	AdvDupeClient.Error( "Your file: \""..filepath.."\" was downloaded from the server", false, true )
-	MsgN("Your file: \""..filepath.."\" was downloaded from the server")
-	
-	RunConsoleCommand("adv_duplicator_updatelist")
-	
-end
-
-local function DownloadFinished( um )
-	AdvDupeClient.downloading = false
-	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeClientDownloadFinished", DownloadFinished)
 
 
 
