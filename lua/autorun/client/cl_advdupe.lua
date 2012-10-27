@@ -40,197 +40,120 @@ usermessage.Hook("AdvDupeCanDownload", RcvCanDownload)
 function AdvDupeClient.CanDownload()
 	return CanDownload
 end
+
 //
 //	Upload functions
 //
-//function AdvDupeClient.SendSaveDataToServer(offset, last)
 local function SendSaveDataToServer(offset, last)
-	if ( !AdvDupeClient.temp2 ) then return end
+	if ( !AdvDupeClient.uploadBuffer ) then return end
 	
-	for i = 1,UploadPiecesPerSend do
-		if (offset <= last) then
-			if ( AdvDupeClient.PercentText == "Uploading" ) then
-				AdvDupeClient.UpdatePercent( math.ceil( offset / last * 100 ) )
-			end
-			
-			local SubStrStart = (offset - 1) * MaxUploadLength
-			
-			local str = ""
-			if (offset == last) then
-				str = AdvDupeClient.temp2:sub( SubStrStart )
-				
-				--Msg("sending last string\n")
-				AdvDupeClient.UpdatePercent( 100 )
-				timer.Simple(.2, function() AdvDupeClient.UpdatePercent(-1) end)
-			else
-				str = AdvDupeClient.temp2:sub( SubStrStart, SubStrStart + MaxUploadLength - 1 )
-			end
-			
-			RunConsoleCommand("_DFC", tostring(offset), str)
-		end
+	if ( AdvDupeClient.PercentText == "Uploading" ) then
+		AdvDupeClient.UpdatePercent( math.ceil( offset / last * 100 ) )
+	end
+	
+	local SubStrStart = (offset - 1) * 64000
+	net.Start("AdvDupeUploadData")
+		local towrite = AdvDupeClient.uploadBuffer:sub( SubStrStart, SubStrStart + 64000 - 1 )
+		net.WriteUInt(#towrite, 16)
+		net.WriteData(towrite, #towrite)
 		offset = offset + 1
-	end
-	
-	if (offset > last) then
-		timer.Simple( 1, function() RunConsoleCommand("DupeRecieveFileContentFinish") end )
-	else
-		timer.Simple( UploadSendDelay, function() SendSaveDataToServer( offset, last ) end)
-	end
-	
+		if offset <= last then
+			net.WriteBit(false) -- Not last chunk
+			timer.Create( "AdvDupe.SendSaveToServerData", 0.5, 1, function()
+				SendSaveDataToServer( offset, last ) 
+			end)
+		else
+			net.WriteBit(true) -- This is the last chunk
+			AdvDupeClient.uploadBuffer = nil --clear this to send again
+			
+			timer.Simple(.2, function() AdvDupeClient.UpdatePercent(-1) end)
+		end
+	net.SendToServer()
 end
 
-local function HaltUpload( um )
-	AdvDupeClient.temp2 = nil
-	AdvDupeClient.sending = false
-	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeHaltUpload", HaltUpload)
 
 function AdvDupeClient.UpLoadFile( pl, filepath )
+	if AdvDupeClient.sending or not AdvDupeClient.CanUpload() then return end
+	if not file.Exists(filepath, "DATA") then print("File not found") return end
 	
-	if (AdvDupeClient.sending) or (!AdvDupeClient.CanUpload()) then return end
-	if !file.Exists(filepath, "DATA")then print("File not found") return end
-	
-	local filename = dupeshare.GetFileFromFilename(filepath)
+	local filename = string.gsub(dupeshare.GetFileFromFilename(filepath),".txt","")
 	
 	//load from file
-	AdvDupeClient.temp2 = file.Read(filepath)
+	AdvDupeClient.uploadBuffer = util.Compress(file.Read(filepath, "DATA"))
 	
-	local compress = dupeshare.ZLib_Installed_SV and dupeshare.ZLib_Installed
+	local len = string.len(AdvDupeClient.uploadBuffer)
+	local last = math.ceil(#AdvDupeClient.uploadBuffer / 64000)
 	
-	AdvDupeClient.temp2 = dupeshare.Compress(AdvDupeClient.temp2, true, compress)	
-	
-	//this is where we send the data to the serer
-	local len = string.len(AdvDupeClient.temp2)
-	local last = math.ceil(len / MaxUploadLength)
-	
-	if ( GetMaxUpload() > 0 and (last - 1) * MaxUploadLength > GetMaxUpload() ) then
+	if GetMaxUpload() > 0 and ((last - 1) * 64000) > GetMaxUpload() then
 		AdvDupeClient.Error( "File is larger than server limit ("..GetMaxUpload().."K)" )
-		AdvDupeClient.temp2 = nil
+		AdvDupeClient.uploadBuffer = nil
 		return
 	end
-	AdvDupeClient.temp2last = last
+	AdvDupeClient.uploadLast = last
 	
-	--pl:ConCommand("DupeRecieveFileContentStart "..tostring(last).." \""..string.gsub(filename,".txt","").."\"")
-	RunConsoleCommand("DupeRecieveFileContentStart", tostring(last), string.gsub(filename,".txt",""))
+	net.Start("AdvDupeUploadStart")
+		net.WriteUInt(last,16)
+		net.WriteString(filename)
+	net.SendToServer()
 end
 	
-	
-local function SendOK(um)
-	AdvDupeClient.SetPercentText( "Uploading" )
-	
-	timer.Simple( 0.2, function() SendSaveDataToServer(1, AdvDupeClient.temp2last) end ) --TODO: wait from server ok to start uploading
-	
-	AdvDupeClient.sending = true
-	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeClientSendOK", SendOK)
-
-
-local function SendFinished( um )
-	AdvDupeClient.temp2 = nil
-	AdvDupeClient.temp2last = nil
-	AdvDupeClient.sending = false
-	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeClientSendFinished", SendFinished)
-
-local function SendFinishedFailed( um )
-	--i don' think this did any good
-	/*if (UploadSendDelay < .5) then
-		UploadSendDelay = UploadSendDelay + 0.05
-		Msg("AdvDupe: increasing UploadSendDelay to "..UploadSendDelay.."\n")
-	elseif (UploadPiecesPerSend > 1) then
-		UploadPiecesPerSend = UploadPiecesPerSend - 1
-		Msg("AdvDupe: decreasing UploadPiecesPerSend to "..UploadPiecesPerSend.."\n")
+-- The server will send a true here if the upload is okay, or a false any time it might want us to stop or clear the cpanel
+net.Receive("AdvDupeUploadOK", function(netlen)
+	if net.ReadBit() != 0 then
+		AdvDupeClient.SetPercentText( "Uploading" )
+		timer.Simple( 0.2, function() SendSaveDataToServer(1, AdvDupeClient.uploadLast) end )
+		AdvDupeClient.sending = true
 	else
-		Msg("AdvDupeERROR: UploadSendDelay and UploadPiecesPerSend maxed to .5 and 1, there's a problem if it's failed this many times.\n")
-	end*/
-	AdvDupeClient.temp2 = nil
-	AdvDupeClient.sending = false
+		AdvDupeClient.uploadBuffer = nil
+		AdvDupeClient.uploadLast = nil
+		AdvDupeClient.sending = false
+	end
 	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeClientSendFinishedFailed", SendFinishedFailed)
+end)
 
 
 
 //
 //	Download functions
 //
-local RecieveBuffer = {}
-local function ClientRecieveSaveStart( um )
-	--Msg("=========  ClientRecieveSaveStart  ==========\n")
-	RecieveBuffer = {}
-	RecieveBuffer.pieces = {}
+local receiveBuffer, receiveDir, receiveFilename = "", "", ""
+local receiveLast, receiveCurrent = 0,0
+net.Receive("AdvDupeDownloadStart",function(len)
+	receiveBuffer = ""
+	receiveCurrent = 0
+	receiveLast = net.ReadUInt(16)
+	receiveFilename = net.ReadString()
+	receiveDir = AdvDupeClient.CLcdir
 	
-	RecieveBuffer.numofpieces	= um:ReadShort()
-	RecieveBuffer.filename		= um:ReadString()
-	RecieveBuffer.compress		= um:ReadBool()
-	RecieveBuffer.dir			= AdvDupeClient.CLcdir
-	
-	RecieveBuffer.recievedpieces = 0
 	AdvDupeClient.downloading = true
 	AdvDuplicator_UpdateControlPanel()
-	
-	--Msg("AdvDupeClient: Clear to recieve file \""..RecieveBuffer.filename.."\" in "..RecieveBuffer.numofpieces.." pieces\n")
-	--Msg("NumToRecieve= "..AdvDupeClient.temp.numofpieces.."\n==========\n")
 	AdvDupeClient.SetPercentText( "Downloading" )
-end
-usermessage.Hook("AdvDupeRecieveSaveStart", ClientRecieveSaveStart)
+	AdvDupeClient.UpdatePercent(10)
+end)
 
-local function ClientRecieveSaveData( um )
-	local piece	= um:ReadShort()
-	local temp	= um:ReadString()
-	RecieveBuffer.recievedpieces = RecieveBuffer.recievedpieces + 1
+net.Receive("AdvDupeDownloadData",function(len)
+	local datalength = net.ReadUInt(16)
+	receiveBuffer = receiveBuffer .. net.ReadData(datalength)
+	receiveCurrent = receiveCurrent + 1
 	
-	--Msg("getting file data, piece: "..piece.." of "..RecieveBuffer.numofpieces.."\n")
 	if ( AdvDupeClient.PercentText == "Downloading" ) then
-		AdvDupeClient.UpdatePercent( math.ceil( piece / RecieveBuffer.numofpieces * 100 ) )
+		AdvDupeClient.UpdatePercent( math.ceil( receiveCurrent / receiveLast * 100 ) )
 	end
-	
-	RecieveBuffer.pieces[piece] = temp
-	
-	if (RecieveBuffer.recievedpieces >= RecieveBuffer.numofpieces) then
-		--MsgN("recieved last piece")
-		AdvDupeClient.UpdatePercent( 100 )
+	if net.ReadBit() != 0 then
+		local filepath, filename = dupeshare.FileNoOverWriteCheck( receiveDir, receiveFilename )
+		
+		file.Write(filepath, util.Decompress(receiveBuffer) or "")
+		
+		AdvDupeClient.Error( "Your file: \""..filepath.."\" was downloaded from the server", false, true )
+		MsgN("Your file: \""..filepath.."\" was downloaded from the server")
+		
+		RunConsoleCommand("adv_duplicator_updatelist")
 		timer.Simple(.5, function() AdvDupeClient.UpdatePercent(-1) end)
-		AdvDupeClient.ClientSaveRecievedFile()
+		AdvDupeClient.downloading = false
+		AdvDuplicator_UpdateControlPanel()
 	end
-end
-usermessage.Hook("AdvDupeRecieveSaveData", ClientRecieveSaveData)
+end)
 
-function AdvDupeClient.ClientSaveRecievedFile()
-	
-	local filepath, filename = dupeshare.FileNoOverWriteCheck( RecieveBuffer.dir, RecieveBuffer.filename )
-	
-	//reassemble the pieces
-	local temp = table.concat(RecieveBuffer.pieces)
-	
-	if Serialiser.SaveCompressed:GetBool() and dupeshare.ZLib_Installed then
-		--MsgN("AdvDupe, ClientSaveRecievedFile: save compressed file")
-		if RecieveBuffer.compress then
-			temp = "[zlib_b64]"..temp
-		else
-			temp = "[zlib_b64]"..dupeshare.Compress(temp, false, true)
-		end
-	else
-		temp = dupeshare.DeCompress(temp, false, RecieveBuffer.compress)
-	end
-	
-	file.Write(filepath, temp)
-	
-	AdvDupeClient.Error( "Your file: \""..filepath.."\" was downloaded from the server", false, true )
-	MsgN("Your file: \""..filepath.."\" was downloaded from the server")
-	
-	RunConsoleCommand("adv_duplicator_updatelist")
-	
-end
-
-local function DownloadFinished( um )
-	AdvDupeClient.downloading = false
-	AdvDuplicator_UpdateControlPanel()
-end
-usermessage.Hook("AdvDupeClientDownloadFinished", DownloadFinished)
 
 
 
