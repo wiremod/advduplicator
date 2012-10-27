@@ -1,11 +1,11 @@
 
 TOOL.Category		= "Constraints"
-TOOL.Name			= "#Weld - Easy w/ Snapping"
+TOOL.Name			= "#Tool.weld_ez2.name"
 TOOL.Command		= nil
 TOOL.ConfigName		= ""
 
 if ( CLIENT ) then
-    language.Add( "Tool.weld_ez2.name", "Easy Weld Constraint w/ Snapping" )
+    language.Add( "Tool.weld_ez2.name", "Weld - Easy w/ Snapping" )
     language.Add( "Tool.weld_ez2.desc", "Same as easy weld execpt with angle snapping" )
     language.Add( "Tool.weld_ez2.0", "Click on a wall, prop or a ragdoll" )
 	language.Add( "Tool.weld_ez2.1", "Now click on something else to weld it to" )
