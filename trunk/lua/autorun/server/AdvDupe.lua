@@ -1445,11 +1445,8 @@ end
 --
 --	Download: Sends a file to the client
 --
---[[function AdvDupe.SaveAndSendSaveToClient( ply, filename, desc )
-	local filepath = AdvDupe.SaveToFile( ply, filename, desc )
-	AdvDupe.SendSaveToClient( ply, filepath )
-end--]]
-
+util.AddNetworkString("AdvDupeDownloadStart")
+util.AddNetworkString("AdvDupeDownloadData")
 AdvDupe.SendBuffer = {}
 function AdvDupe.SendSaveToClient( ply, filename )
 	if ( !CanDownload( ply ) ) then return end
@@ -1471,67 +1468,39 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	filename = dupeshare.GetFileFromFilename(filepath)
 	
-	AdvDupe.SendBuffer[ply] = file.Read(dupeshare.ParsePath(filepath)) or ""
+	AdvDupe.SendBuffer[ply] = util.Compress(file.Read(dupeshare.ParsePath(filepath)) or "")
 	
-	local compress = (ply:GetInfo("ZLib_Installed") == "1") and dupeshare.ZLib_Installed
-	--MsgN("Compress = ",compress)
+	-- Consider compression
 	
-	AdvDupe.SendBuffer[ply] = dupeshare.Compress(AdvDupe.SendBuffer[ply], false, compress)
+	local last = math.ceil(#AdvDupe.SendBuffer[ply] / 64000)
 	
-	if AdvDupe.SendBuffer[ply] == nil then return end
+	net.Start("AdvDupeDownloadStart")
+		net.WriteUInt(last,16)
+		net.WriteString(filename)
+	net.Send(ply)
 	
-	local len = string.len(AdvDupe.SendBuffer[ply])
-	local last = math.ceil(len / MaxDownloadLength)
-	
-	umsg.Start("AdvDupeRecieveSaveStart", ply)
-		umsg.Short(last)
-		umsg.String(filename)
-		umsg.Bool(compress)
-		--umsg.String(ndir)
-	umsg.End()
-	--MsgN("AdvDupe: sending file \"",filename,".txt\" in ",tostring(last)," pieces. len: ",tostring(len))
-	--AdvDupe.SetPercentText( ply, "Downloading" )
-	
-	--AdvDupe.SendSaveToClientData(ply, 1, last)
-	--MsgN("send rate: ",PlayerSettings[ply].DownloadSendInterval)
-	timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, 1, last ) end)
+	AdvDupe.SendSaveToClientData( ply, 1, last )
 end
 
 function AdvDupe.SendSaveToClientData(ply, offset, last)
-	if (!ply or !IsValid(ply) or !ply:IsPlayer()) or (!AdvDupe.SendBuffer[ply]) then return end
-	
-	for k=1, PlayerSettings[ply].DownloadPiecesPerSend do --sends three pieces
-		--Msg("AdvDupe: sending piece: "..offset.." / "..last.."\n")
+	if not IsValid(ply) or not AdvDupe.SendBuffer[ply] then return end
 		
-		local SubStrStart = (offset - 1) * MaxDownloadLength
-		local str = ""
-		if ( offset == last ) then
-			--umsg.String(string.Right(AdvDupe[ply].temp, (len - ((last - 2) * MaxDownloadLength))))
-			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart )
-			--Msg("AdvDupe: send last piece\n")
-		else
-			--umsg.String(string.Right(string.Left(AdvDupe[ply].temp, ((offset + k) * MaxDownloadLength)),MaxDownloadLength))
-			str = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + MaxDownloadLength - 1 )
-		end
-		
-		umsg.Start("AdvDupeRecieveSaveData", ply)
-			umsg.Short(offset) --cause sometimes these are reccieved out of order
-			umsg.String( str )
-		umsg.End()
-		
+	local SubStrStart = (offset - 1) * 64000
+	net.Start("AdvDupeDownloadData")
+		local towrite = AdvDupe.SendBuffer[ply]:sub( SubStrStart, SubStrStart + 64000 - 1 )
+		net.WriteUInt(#towrite, 16)
+		net.WriteData(towrite, #towrite)
 		offset = offset + 1
-		if ( offset > last ) then break end
-	end
-	
-	if ( offset <= last ) then
-		timer.Simple( PlayerSettings[ply].DownloadSendInterval, function() AdvDupe.SendSaveToClientData( ply, offset, last ) end)
-	else
-		AdvDupe.SendBuffer[ply] = nil --clear this to send again
-		--inform the client they finished downloading in case they didn't notice
-		umsg.Start("AdvDupeClientDownloadFinished", ply)
-		umsg.End()
-	end
-	
+		if offset <= last then
+			net.WriteBit(false) -- Not last chunk
+			timer.Create( "AdvDupe.SendSaveToClientData_"..ply:UniqueID(), 0.5, 1, function()
+				AdvDupe.SendSaveToClientData( ply, offset, last ) 
+			end)
+		else
+			net.WriteBit(true) -- This is the last chunk
+			AdvDupe.SendBuffer[ply] = nil --clear this to send again
+		end
+	net.Send(ply)
 end
 
 
