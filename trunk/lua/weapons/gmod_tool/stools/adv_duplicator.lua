@@ -5,10 +5,10 @@
 --]]------------------------------------------
 
 TOOL.Category		= "Construction"
-TOOL.Name			= "#AdvancedDuplicator"
+TOOL.Name			= "#tool.adv_duplicator.name"
+TOOL.IsAdvDuplicator = true
 
 if CLIENT then
-	language.Add( "AdvancedDuplicator", "Advanced Duplicator" )
 	language.Add( "tool.adv_duplicator.name", "Advanced Duplicator" )
 	language.Add( "tool.adv_duplicator.desc", "Duplicate an entity, or group of entities" )
 	language.Add( "tool.adv_duplicator.0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
@@ -272,7 +272,7 @@ end
 --just because
 function TOOL.BuildCPanel( CPanel )
 	
-	CPanel:AddControl( "Header", { Text = "#Tool_adv_duplicator_name", Description	= "#Tool_adv_duplicator_desc" }  )
+	CPanel:AddControl( "Header", { Text = "#Tool.adv_duplicator.name", Description	= "#Tool.adv_duplicator.desc" }  )
 
 end
 
