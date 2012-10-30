@@ -496,7 +496,7 @@ function AdvDupeClient.MakeDir( pl, command, args )
 			AdvDupeClient.gui.makedir.frame:Close()
 		end
 		
-		AdvDupeClient.gui.makedir.lblDir = vgui.Create("Label",AdvDupeClient.gui.makedir.frame,"lblDir")
+		AdvDupeClient.gui.makedir.lblDir = vgui.Create("DLabel",AdvDupeClient.gui.makedir.frame,"lblDir")
 		AdvDupeClient.gui.makedir.lblDir:SetPos(6,65)
 		AdvDupeClient.gui.makedir.lblDir:SetSize(185,25)
 		
@@ -563,7 +563,7 @@ function AdvDupeClient.RenameFile( pl, cmd, args )
 			AdvDupeClient.gui.rename.frame:Close()
 		end
 		
-		AdvDupeClient.gui.rename.lblNewName = vgui.Create("Label",AdvDupeClient.gui.rename.frame,"lblNewName")
+		AdvDupeClient.gui.rename.lblNewName = vgui.Create("DLabel",AdvDupeClient.gui.rename.frame,"lblNewName")
 		AdvDupeClient.gui.rename.lblNewName:SetPos(6,65)
 		AdvDupeClient.gui.rename.lblNewName:SetSize(185,25)
 		
@@ -637,7 +637,7 @@ function AdvDupeClient.ConfirmDelete( pl, cmd, args )
 			AdvDupeClient.gui.delete.frame:Close()
 		end
 		
-		AdvDupeClient.gui.delete.lblFileName = vgui.Create("Label",AdvDupeClient.gui.delete.frame,"lblFileName")
+		AdvDupeClient.gui.delete.lblFileName = vgui.Create("DLabel",AdvDupeClient.gui.delete.frame,"lblFileName")
 		AdvDupeClient.gui.delete.lblFileName:SetPos(6,25)
 		AdvDupeClient.gui.delete.lblFileName:SetSize(185,25)
 	end

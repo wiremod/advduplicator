@@ -579,7 +579,17 @@ function TOOL:HideGhost(Hide)
 	end
 end
 
-
+if SERVER then
+	util.AddNetworkString("AdvDupe.ResetDirectories")
+	util.AddNetworkString(dupeshare.BaseDir)
+else
+	net.Receive("AdvDupe.ResetDirectories", function(netlen)
+		AdvDupeClient.CLcdir = net.ReadString()
+		AdvDupeClient.CLcdir2 = net.ReadString()
+		AdvDupeClient.MyBaseDir = net.ReadString()
+		AdvDupeClient.CurMenu = "main"
+	end)
+end
 
 function TOOL:Deploy()
 	if CLIENT then return end
@@ -590,11 +600,11 @@ function TOOL:Deploy()
 	AdvDupe[self:GetOwner()].cdir = AdvDupe.GetPlayersFolder(self:GetOwner())
 	AdvDupe[self:GetOwner()].cdir2 = ""
 	
-	--	TODO: Replace these with umsging
-	self:GetOwner():SendLua( "AdvDupeClient.CLcdir=\""..dupeshare.BaseDir.."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.CLcdir2=\""..dupeshare.BaseDir.."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.MyBaseDir=\""..AdvDupe[self:GetOwner()].cdir.."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.CurMenu=\"main\"" )
+	net.Start("AdvDupe.ResetDirectories")
+		net.WriteString(dupeshare.BaseDir)
+		net.WriteString(dupeshare.BaseDir)
+		net.WriteString(AdvDupe[self:GetOwner()].cdir)
+	net.Send(self:GetOwner())
 	
 	self:UpdateLoadedFileInfo()
 	
@@ -606,29 +616,52 @@ function TOOL:Holster()
 	self:HideGhost(true)
 end
 
-
-function TOOL:UpdateLoadedFileInfo()
-	self:GetOwner():SendLua( "AdvDupeClient.FileLoaded="..tostring(self.FileLoaded) )
-	self:GetOwner():SendLua( "AdvDupeClient.Copied="..tostring(self.Copied) )
-	self:GetOwner():SendLua( "AdvDupeClient.LoadedFilename=\""..(self.Info.Filepath or "").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedCreator=\""..(self.Info.Creator or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedDesc=\""..(self.Info.Desc or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedNumOfEnts=\""..(self.NumOfEnts or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedNumOfConst=\""..(self.NumOfConst or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedFileVersion=\""..(self.Info.FileVersion or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedFileFileDate=\""..(self.Info.FileDate or "n/a").."\"" )
-	self:GetOwner():SendLua( "AdvDupeClient.LocadedFileFileTime=\""..(self.Info.FileTime or "n/a").."\"" )
-	if ( self.StartPos ) then
-		self:GetOwner():SendLua( "AdvDupeClient.HasStartPos=true" )
-	else
-		self:GetOwner():SendLua( "AdvDupeClient.HasStartPos=false" )
-	end
+if SERVER then
+	util.AddNetworkString("AdvDupe.UpdateLoadedFileInfo")
+else
+	net.Receive("AdvDupe.UpdateLoadedFileInfo", function(netlen)
+		AdvDupeClient.FileLoaded = net.ReadBit() ~= 0
+		AdvDupeClient.Copied = net.ReadBit() ~= 0
+		AdvDupeClient.LoadedFilename = net.ReadString()
+		AdvDupeClient.LocadedCreator = net.ReadString()
+		AdvDupeClient.LocadedDesc = net.ReadString()
+		AdvDupeClient.LocadedNumOfEnts = net.ReadString()
+		AdvDupeClient.LocadedNumOfConst = net.ReadString()
+		AdvDupeClient.LocadedFileVersion = net.ReadString()
+		AdvDupeClient.LocadedFileFileDate = net.ReadString()
+		AdvDupeClient.LocadedFileFileTime = net.ReadString()
+		AdvDupeClient.HasStartPos = net.ReadBit() ~= 0
+	end)
 end
 
+function TOOL:UpdateLoadedFileInfo()
+	net.Start("AdvDupe.UpdateLoadedFileInfo")
+		net.WriteBit(self.FileLoaded)
+		net.WriteBit(self.Copied)
+		net.WriteString(self.Info.Filepath or "")
+		net.WriteString(self.Info.Creator or "n/a")
+		net.WriteString(self.Info.Desc or "n/a")
+		net.WriteString(self.Info.NumOfEnts or "n/a")
+		net.WriteString(self.Info.NumOfConst or "n/a")
+		net.WriteString(self.Info.FileVersion or "n/a")
+		net.WriteString(self.Info.FileDate or "n/a")
+		net.WriteString(self.Info.FileTime or "n/a")
+		net.WriteBit(self.StartPos ~= nil)
+	net.Send(self:GetOwner())
+end
+
+if SERVER then
+	util.AddNetworkString("AdvDupe.ClearClipBoard")
+else
+	net.Receive("AdvDupe.ClearClipBoard", function(netlen)
+		AdvDupeClient.FileLoaded=false
+		AdvDupeClient.Copied=false
+	end)
+end
 
 function TOOL:ClearClipBoard()
 
-	if (self.Entities == nil) then return end -- Already cleared
+	if not self.Entities then return end -- Already cleared
 	
 	self:ReleaseGhostEntity()
 	self.GhostEntities = {}
@@ -642,11 +675,6 @@ function TOOL:ClearClipBoard()
 	self.Constraints	= nil
 	self.FileLoaded		= false
 	self.Copied			= false
-	if (SERVER) then
-		self:SetPercent(-1)
-		self:GetOwner():SendLua( "AdvDupeClient.FileLoaded=false" )
-		self:GetOwner():SendLua( "AdvDupeClient.Copied=false" )
-	end
 	
 	self:GetOwner():ConCommand( "adv_duplicator_height 0")
 	self:GetOwner():ConCommand( "adv_duplicator_angle 0")
@@ -655,10 +683,10 @@ function TOOL:ClearClipBoard()
 	self:GetOwner():ConCommand( "adv_duplicator_pastewoconst 0")
 	
 	if SERVER then
+		self:SetPercent(-1)
+		net.Start("AdvDupe.ClearClipBoard") net.Send(self:GetOwner())
 		self:UpdateList()
-		--AdvDupe.UpdateList(self:GetOwner())
 	end
-	
 end
 
 
@@ -751,86 +779,115 @@ function TOOL:LoadFileCallBack( filepath, Entities, Constraints, DupeInfo, DORIn
 	
 end
 
-
-function TOOL:UpdateList()
-	if (!self:GetOwner():IsValid()) then return false end
-	if (!self:GetOwner():IsPlayer()) then return false end
-	
-	self:GetOwner():SendLua( "if ( !duplicator ) then AdvDupeClient={} end" )
-	
-	if !AdvDupe[self:GetOwner()] then AdvDupe[self:GetOwner()] = {} end
-	if !AdvDupe[self:GetOwner()].cdir then
-		AdvDupe[self:GetOwner()].cdir = AdvDupe.GetPlayersFolder(self:GetOwner())
-	end
-	
-	
-	local cdir = AdvDupe[self:GetOwner()].cdir
-
-	--Msg("cdir= "..cdir.."\n")
- 	self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs={}" )
-	self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles={}" )
-	self:GetOwner():SendLua( "AdvDupeClient.SScdir=\""..cdir.."\"" )
-	
-	if ( cdir == dupeshare.BaseDir.."/=Public Folder=" ) or ( dupeshare.NamedLikeAPublicDir(dupeshare.GetFileFromFilename(cdir)) ) or ( cdir == "Contraption Saver Tool" ) then
-		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/..\"] = \""..AdvDupe.GetPlayersFolder(self:GetOwner()).."\"" )
-	elseif ( cdir ~= AdvDupe.GetPlayersFolder(self:GetOwner()) ) then
-		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/..\"] = \""..dupeshare.UpDir(cdir).."\"" )
-	elseif (GetConVarNumber("sv_AdvDupeEnablePublicFolder") == 1) then --is at root
-		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/=Public Folder=\"] = \""..dupeshare.BaseDir.."/=Public Folder=\"" )
-		
-		if ( file.Exists("Contraption Saver Tool", "DATA") && file.IsDir("Contraption Saver Tool", "DATA") ) then
-			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/=Contraption Saver Dir=\"] = \"Contraption Saver Tool\"" )
-		end
-	end
-	
-	if ( file.Exists(cdir, "DATA") && file.IsDir(cdir, "DATA") ) then
-		for key, val in pairs( file.Find(dupeshare.ParsePath( cdir.."/*" ), "DATA") ) do
-			if ( !file.IsDir(dupeshare.ParsePath( cdir.."/"..val ), "DATA") ) then
-				--self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles[\""..val.."\"] = \""..cdir.."/"..val.."\"" )
-				self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles[\""..val.."\"] = \""..val.."\"" )
-			elseif  ( file.IsDir(dupeshare.ParsePath( cdir.."/"..val ), "DATA") ) then
-				self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs[\"/"..val.."\"] = \""..cdir.."/"..val.. "\"" )
+if SERVER then
+	util.AddNetworkString("AdvDupe.UpdateList")
+else
+	net.Receive("AdvDupe.UpdateList", function(netlen)
+		if not duplicator then AdvDupeClient={} end -- uhh why?
+		AdvDupeClient.LoadListDirs  = {}
+		AdvDupeClient.LoadListFiles = {}
+		AdvDupeClient.SScdir = net.ReadString()
+		local updir = net.ReadString()
+		if updir ~= "" then 
+			AdvDupeClient.LoadListDirs["/.."] = updir
+		else
+			-- They're in their root folder, show them public folders
+			for _,dir in pairs(dupeshare.PublicDirs) do
+				AdvDupeClient.LoadListDirs["/"..dir] = dupeshare.BaseDir.."/"..dir
 			end
 		end
-	end
-	
-	
-	if (AdvDupe[self:GetOwner()].cdir2 ~= "") then
 		
-		local cdir2 = AdvDupe[self:GetOwner()].cdir2
-		--Msg("cdir2= "..cdir2.."\n")
-		self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2={}" )
-		self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles2={}" )
-		self:GetOwner():SendLua( "AdvDupeClient.SScdir2=\""..cdir2.."\"" )
+		-- The list of files
+		for k=1,net.ReadUInt(16) do
+			local name = net.ReadString()
+			AdvDupeClient.LoadListFiles[name] = name
+		end
 		
-		if ( cdir2 == dupeshare.BaseDir.."/=Public Folder=" ) or ( dupeshare.NamedLikeAPublicDir(dupeshare.GetFileFromFilename(cdir2)) ) or ( cdir2 == "Contraption Saver Tool" ) then
-			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/..\"] = \""..AdvDupe.GetPlayersFolder(self:GetOwner()).."\"" )
-		elseif ( cdir2 ~= AdvDupe.GetPlayersFolder(self:GetOwner()) ) then
-			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/..\"] = \""..dupeshare.UpDir(cdir2).."\"" )
-		elseif (GetConVarNumber("sv_AdvDupeEnablePublicFolder") == 1) then --is at root
-			self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/=Public Folder=\"] = \""..dupeshare.BaseDir.."/=Public Folder=\"" )
+		-- The list of folders
+		for k=1,net.ReadUInt(16) do
+			local name = net.ReadString()
+			AdvDupeClient.LoadListDirs["/"..name] = AdvDupeClient.SScdir.."/"..name
+		end
+		
+		if net.ReadBit() ~= 0 then
+			-- cdir2 stuff (basically just cdir1 again)
+			AdvDupeClient.LoadListDirs2  = {}
+			AdvDupeClient.LoadListFiles2 = {}
+			AdvDupeClient.SScdir2 = net.ReadString()
 			
-			if ( file.Exists("Contraption Saver Tool", "DATA") && file.IsDir("Contraption Saver Tool", "DATA") ) then
-				self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/=Contraption Saver Dir=\"] = \"Contraption Saver Tool\"" )
-			end
-		end
-		
-		if ( file.Exists(cdir2, "DATA") && file.IsDir(cdir2, "DATA")) then
-			for key, val in pairs( file.Find(dupeshare.ParsePath( cdir2.."/*" ), "DATA" )) do
-				if ( !file.IsDir(dupeshare.ParsePath( cdir2.."/"..val ), "DATA") ) then
-					self:GetOwner():SendLua( "AdvDupeClient.LoadListFiles2[\""..val.."\"] = \""..cdir2.."/"..val.."\"" )
-				elseif  ( file.IsDir(dupeshare.ParsePath( cdir2.."/"..val ), "DATA") ) then
-					self:GetOwner():SendLua( "AdvDupeClient.LoadListDirs2[\"/"..val.."\"] = \""..cdir2.."/"..val.. "\"" )
+			local updir = net.ReadString()
+			if updir ~= "" then 
+				AdvDupeClient.LoadListDirs2["/.."] = updir
+			else
+				-- They're in their root folder, show them public folders
+				for _,dir in pairs(dupeshare.PublicDirs) do
+					AdvDupeClient.LoadListDirs2["/"..dir] = dupeshare.BaseDir.."/"..dir
 				end
 			end
+			
+			-- The list of files
+			for k=1,net.ReadUInt(16) do
+				local name = net.ReadString()
+				AdvDupeClient.LoadListFiles2[name] = AdvDupeClient.SScdir2.."/"..name
+			end
+			
+			-- The list of folders
+			for k=1,net.ReadUInt(16) do
+				local name = net.ReadString()
+				AdvDupeClient.LoadListDirs2["/"..name] = AdvDupeClient.SScdir2.."/"..name
+			end
+		end
+		AdvDuplicator_UpdateControlPanel()
+	end)
+end
+
+function TOOL:UpdateList()
+	local ply = self:GetOwner()
+	if not ply:IsValid() or not ply:IsPlayer() then return false end
+	
+	if not AdvDupe[ply] then AdvDupe[ply] = {} end
+	if not AdvDupe[ply].cdir then AdvDupe[ply].cdir = AdvDupe.GetPlayersFolder(ply) end
+	
+	local cdir = AdvDupe[ply].cdir
+	local cdir2 = AdvDupe[ply].cdir2
+	
+	net.Start("AdvDupe.UpdateList")
+		net.WriteString(cdir)
+		
+		if dupeshare.NamedLikeAPublicDir(dupeshare.GetFileFromFilename(cdir)) then
+			net.WriteString(AdvDupe.GetPlayersFolder(ply)) -- "/.." will go to the player's directory
+		elseif cdir ~= AdvDupe.GetPlayersFolder(ply) then
+			net.WriteString(dupeshare.UpDir(cdir)) -- "/.." will go up a dir
+		else
+			net.WriteString("") -- Its at root, no /.. will be present
 		end
 		
-	end
+		local files, dirs = file.Find(dupeshare.ParsePath( cdir.."/*" ), "DATA")
+		net.WriteUInt(#files, 16)
+		for _, val in pairs(files) do net.WriteString(val) end
+		net.WriteUInt(#dirs, 16)
+		for _, val in pairs(dirs) do net.WriteString(val) end
 	
-	
-	-- Force user to update list
-	self:GetOwner():SendLua( "AdvDuplicator_UpdateControlPanel()" )
-	
+		net.WriteBit(cdir2 ~= "")
+		if cdir2 ~= "" then
+			-- cdir2 stuff, basically a copypaste of the above
+			net.WriteString(cdir2)
+			
+			if dupeshare.NamedLikeAPublicDir(dupeshare.GetFileFromFilename(cdir2)) then
+				net.WriteString(AdvDupe.GetPlayersFolder(ply)) -- "/.." will go to the player's directory
+			elseif cdir2 ~= AdvDupe.GetPlayersFolder(ply) then
+				net.WriteString(dupeshare.UpDir(cdir2)) -- "/.." will go up a dir
+			else
+				net.WriteString("") -- Its at root, no /.. will be present
+			end
+			
+			local files, dirs = file.Find(dupeshare.ParsePath( cdir2.."/*" ), "DATA")
+			net.WriteUInt(#files, 16)
+			for _, val in pairs(files) do net.WriteString(val) end
+			net.WriteUInt(#dirs, 16)
+			for _, val in pairs(dirs) do net.WriteString(val) end
+		end
+	net.Send(ply)
 end
 
 
@@ -898,11 +955,6 @@ if SERVER then
 			
 			tool:GetTable():GetToolObject():LoadFile( filepath )
 			
-			--pl:SendLua(  "LocalPlayer():GetActiveWeapon():GetTable():GetToolObject():StartGhostEntities()")
-			--tool:GetTable():GetToolObject():StartGhostEntities()
-			--tool:GetTable():GetToolObject():SendGhostToClient(true)
-			--pl:SendLua(  "LocalPlayer():GetActiveWeapon():GetTable():GetToolObject():UpdateGhostEntities()" )
-			
 		else --list must be outdated, refresh it
 			tool:GetTable():GetToolObject():UpdateList()
 			return
@@ -926,12 +978,19 @@ if SERVER then
 			plydir = string.gsub(plydir, "STEAM_1", "STEAM_0") -- I think this was needed cause Valve randomly changed everybody's IDs - Jimlad
 			plydir = dupeshare.BaseDir.."/"..plydir
 			
-			local pubdir = dupeshare.BaseDir.."/=Public Folder="
-			
-			if 
-				dir:sub(1, pubdir:len()) ~= pubdir and
-				(dir.."/"):sub(1, plydir:len()+1) ~= plydir.."/" then
-			--if not string.find(dir, "^"..dupeshare.BaseDir.."/=Public Folder=") and not string.find(dir.."/", "^"..plydir.."/") then -- extra "/" is required for cases where the first part of two players' SteamIDs happen to match
+			local baddir = (dir.."/"):sub(1, plydir:len()+1) ~= plydir.."/"
+			if baddir then
+				-- The directory isn't the player's, might it be a public folder?
+				for _,pubdir in pairs(dupeshare.PublicDirs) do
+					pubdir = dupeshare.BaseDir.."/"..pubdir
+					if dir:sub(1, pubdir:len()) == pubdir then
+						-- The directory starts with adv_duplicator/apublicfolder/, we're okay
+						baddir = false
+						break
+					end
+				end
+			end
+			if baddir then
 				print("AdvDupe: WARNING: "..tostring(pl).." tried to access a folder outside of Public or /"..plydir)
 				return
 			end
@@ -985,21 +1044,12 @@ if SERVER then
 	
 	--sends the selected file to the client
 	local function AdvDupeSS_ClSend( pl, command, args )
+		if not pl:IsValid() or not pl:IsPlayer() then return end
 		
-		if !pl:IsValid() 
-		or !pl:IsPlayer() 
-		then return end
-		
-		local filename = ""
-		if !args[1] --if a filename wasn't passed with a arg, then get the selection in the panel
-		then filename = pl:GetInfo( "adv_duplicator_load_filename" )
-		else filename = tostring(args[1]) end
-		
-		filename = AdvDupe[pl].cdir.."/"..filename
+		--if a filename wasn't passed with a arg, then get the selection in the panel
+		local filename = AdvDupe[pl].cdir.."/"..tostring(args[1] or pl:GetInfo( "adv_duplicator_load_filename" ))
 		
 		AdvDupe.SendSaveToClient( pl, filename )
-		
-		pl:SendLua( "AdvDuplicator_UpdateControlPanel()" )
 	end
 	concommand.Add( "adv_duplicator_send_cl", AdvDupeSS_ClSend )
 	
