@@ -1,12 +1,12 @@
-
 ENT.Spawnable			= false
 ENT.AdminSpawnable		= false
 
 include('shared.lua')
+local LaserMat = Material("tripmine_laser")
 
 function ENT:Initialize()
 	mx, mn = self:GetRenderBounds()
-	self:SetRenderBounds( mn + Vector(0,0,128), mx, 0 )
+	self:SetRenderBounds( mn + Vector(0,0,128), mx )
 end
 
 
@@ -47,11 +47,11 @@ function ENT:Draw()
 		if (lepos.x > bbmax.x) then bbmax.x = lepos.x end
 		if (lepos.y > bbmax.y) then bbmax.y = lepos.y end
 		if (lepos.z > bbmax.z) then bbmax.z = lepos.z end
-		self:SetRenderBounds(bbmin, bbmax, Vector()*6)
+		self:SetRenderBounds(bbmin, bbmax)
 
 		local trace = {}
 		trace.start = start
-		trace.endpos = trace.start + beam_x + beam_y + beam_z
+		trace.endpos = endpos
 		trace.filter = { self }
 		if (self:GetNetworkedInt("TraceWater") == 1) then trace.mask = MASK_ALL end
 
@@ -60,7 +60,7 @@ function ENT:Draw()
 			endpos = trace.HitPos
 		end
 
-		render.SetMaterial(Material("tripmine_laser"))
-		render.DrawBeam(start, endpos, 6, 0, 10, Color(self:GetColor()))
+		render.SetMaterial(LaserMat)
+		render.DrawBeam(start, endpos, 6, 0, 10, self:GetColor())
 	end
 end
