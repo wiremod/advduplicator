@@ -3,7 +3,7 @@ dupeshare = {}
 dupeshare.Version = 1.72
 
 dupeshare.BaseDir		= "adv_duplicator"
-dupeshare.PublicDirs	= { "=Public Folder=" }
+dupeshare.PublicDirs	= { "-Public Folder-" }
 
 //TODO
 dupeshare.UsePWSys = false //don't change this
