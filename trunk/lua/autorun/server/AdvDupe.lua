@@ -1075,9 +1075,7 @@ end
 
 function AdvDupe.GetAdvDupeToolObj(ply)
 	if ( !ply or !IsValid(ply) or !ply:IsPlayer() ) then return end
-	--local tool = ply:GetActiveWeapon()
-	if ( !ply:GetActiveWeapon():GetTable().Tool ) then return end
-	local tool = ply:GetActiveWeapon():GetTable().Tool.adv_duplicator.Weapon
+	local tool = ply:GetActiveWeapon()
 	if ( dupeshare.CurrentToolIsDuplicator(tool) ) then
 		return tool:GetTable():GetToolObject()
 	end
