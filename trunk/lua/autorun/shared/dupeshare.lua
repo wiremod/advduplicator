@@ -307,7 +307,7 @@ function dupeshare.RebuildTableFromLoad_Old( t, done )
 	local tbl = {}
 
 	for k, v in pairs ( t ) do
-		if ( type( v ) == "table" and !done[ v ] ) then
+		if ( istable( v ) and !done[ v ] ) then
 			done[ v ] = true
 			if ( v.__type ) then
 				if ( v.__type == "Vector" ) then
@@ -342,7 +342,7 @@ function dupeshare.RebuildTableFromLoad( t, done, StrTbl )
 
 	for k, v in pairs ( t ) do
 		local CaseKey = dupeshare.UnprotectCase(k, StrTbl)
-		if ( type( v ) == "table" and !done[ v ] ) then
+		if ( istable( v ) and !done[ v ] ) then
 			done[ v ] = true
 			tbl[ CaseKey ] = dupeshare.RebuildTableFromLoad( v, done, StrTbl )
 		else
