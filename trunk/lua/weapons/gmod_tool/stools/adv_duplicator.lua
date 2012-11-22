@@ -623,13 +623,13 @@ else
 		AdvDupeClient.FileLoaded = net.ReadBit() ~= 0
 		AdvDupeClient.Copied = net.ReadBit() ~= 0
 		AdvDupeClient.LoadedFilename = net.ReadString()
-		AdvDupeClient.LocadedCreator = net.ReadString()
-		AdvDupeClient.LocadedDesc = net.ReadString()
-		AdvDupeClient.LocadedNumOfEnts = net.ReadString()
-		AdvDupeClient.LocadedNumOfConst = net.ReadString()
-		AdvDupeClient.LocadedFileVersion = net.ReadString()
-		AdvDupeClient.LocadedFileFileDate = net.ReadString()
-		AdvDupeClient.LocadedFileFileTime = net.ReadString()
+		AdvDupeClient.LoadedCreator = net.ReadString()
+		AdvDupeClient.LoadedDesc = net.ReadString()
+		AdvDupeClient.LoadedNumOfEnts = net.ReadString()
+		AdvDupeClient.LoadedNumOfConst = net.ReadString()
+		AdvDupeClient.LoadedFileVersion = net.ReadString()
+		AdvDupeClient.LoadedFileDate = net.ReadString()
+		AdvDupeClient.LoadedFileTime = net.ReadString()
 		AdvDupeClient.HasStartPos = net.ReadBit() ~= 0
 		
 		if net.ReadBit() ~= 0 then AdvDuplicator_UpdateControlPanel() end
@@ -1229,17 +1229,17 @@ if CLIENT then
 			local txt
 			if AdvDupeClient.FileLoaded then
 				txt = "File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""
-				txt = txt.."\nCreator: "..AdvDupeClient.LocadedCreator
-				if AdvDupeClient.LocadedDesc != "none" then txt = txt.."\nDesc: "..AdvDupeClient.LocadedDesc end
-				txt = txt.."\nDate: "..AdvDupeClient.LocadedFileFileDate
-				txt = txt.."\nTime: "..AdvDupeClient.LocadedFileFileTime
-				txt = txt.."\nNumber of    Entities: "..AdvDupeClient.LocadedNumOfEnts
-				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LocadedNumOfConst
-				txt = txt.."\nFileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")
+				txt = txt.."\nCreator: "..AdvDupeClient.LoadedCreator
+				if AdvDupeClient.LoadedDesc != "none" then txt = txt.."\nDesc: "..AdvDupeClient.LoadedDesc end
+				txt = txt.."\nDate: "..AdvDupeClient.LoadedFileDate
+				txt = txt.."\nTime: "..AdvDupeClient.LoadedFileTime
+				txt = txt.."\nNumber of Entities: "..AdvDupeClient.LoadedNumOfEnts
+				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LoadedNumOfConst
+				txt = txt.."\nFile Version: "..(AdvDupeClient.LoadedFileVersion or "n/a")
 			elseif AdvDupeClient.Copied then
 				txt = "Unsaved Data Stored in Clipboard"
-				txt = txt.."\nNumber of    Entities: "..AdvDupeClient.LocadedNumOfEnts
-				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LocadedNumOfConst
+				txt = txt.."\nNumber of Entities: "..AdvDupeClient.LoadedNumOfEnts
+				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LoadedNumOfConst
 			else
 				txt = "No Data in Clipboard"
 			end
