@@ -190,7 +190,7 @@ function TOOL:RightClick( trace )
 	self.Info.FileDate		= ""
 	self.Info.FileTime		= ""
 	
-	self:UpdateLoadedFileInfo()
+	self:UpdateLoadedFileInfo(true)
 	
 	--self:SetPercent(100)
 	
@@ -631,22 +631,25 @@ else
 		AdvDupeClient.LocadedFileFileDate = net.ReadString()
 		AdvDupeClient.LocadedFileFileTime = net.ReadString()
 		AdvDupeClient.HasStartPos = net.ReadBit() ~= 0
+		
+		if net.ReadBit() ~= 0 then AdvDuplicator_UpdateControlPanel() end
 	end)
 end
 
-function TOOL:UpdateLoadedFileInfo()
+function TOOL:UpdateLoadedFileInfo(RefreshCPanel)
 	net.Start("AdvDupe.UpdateLoadedFileInfo")
 		net.WriteBit(self.FileLoaded)
 		net.WriteBit(self.Copied)
 		net.WriteString(self.Info.FilePath or "")
 		net.WriteString(self.Info.Creator or "n/a")
-		net.WriteString(self.Info.Desc or "n/a")
-		net.WriteString(self.Info.NumOfEnts or "n/a")
-		net.WriteString(self.Info.NumOfConst or "n/a")
+		net.WriteString(self.Info.Desc or "none")
+		net.WriteString(self.NumOfEnts or "n/a")
+		net.WriteString(self.NumOfConst or "n/a")
 		net.WriteString(self.Info.FileVersion or "n/a")
 		net.WriteString(self.Info.FileDate or "n/a")
 		net.WriteString(self.Info.FileTime or "n/a")
 		net.WriteBit(self.StartPos ~= nil)
+		net.WriteBit(RefreshCPanel ~= nil)
 	net.Send(self:GetOwner())
 end
 
@@ -768,9 +771,7 @@ function TOOL:LoadFileCallBack( filepath, Entities, Constraints, DupeInfo, DORIn
 		
 		--self:GetOwner():ConCommand( "adv_duplicator_angle "..self.HoldAngle.yaw)
 		
-		self:UpdateLoadedFileInfo()
-		
-		self:UpdateList()
+		self:UpdateLoadedFileInfo(true)
 		
 		self:SetPercent(100)
 		
@@ -1148,12 +1149,6 @@ if CLIENT then
 	end
 	
 	function AdvDuplicator_UpdateControlPanel()
-		local _Label = Label
-		local function Label(...)
-			local lbl = _Label(...)
-			lbl:SetTextColor(color_black)
-			return lbl
-		end
 		local CPanel = controlpanel.Get( "adv_duplicator" )
 		if not CPanel then return end
 		
@@ -1231,20 +1226,24 @@ if CLIENT then
 				bottom:Button("Open Server Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir")
 			end
 			bottom:Button("Open Paster Menu", "adv_duplicator_cl_menu", "paster")
+			local txt
 			if AdvDupeClient.FileLoaded then
-				local txt = "File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""
+				txt = "File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""
 				txt = txt.."\nCreator: "..AdvDupeClient.LocadedCreator
-				txt = txt.."\nDesc: "..AdvDupeClient.LocadedDesc.."\nDate: "..AdvDupeClient.LocadedFileFileDate
+				if AdvDupeClient.LocadedDesc != "none" then txt = txt.."\nDesc: "..AdvDupeClient.LocadedDesc end
+				txt = txt.."\nDate: "..AdvDupeClient.LocadedFileFileDate
 				txt = txt.."\nTime: "..AdvDupeClient.LocadedFileFileTime
-				txt = txt.."\nNumOfEnts: "..AdvDupeClient.LocadedNumOfEnts
-				txt = txt.."\nNumOfConst: "..AdvDupeClient.LocadedNumOfConst
+				txt = txt.."\nNumber of    Entities: "..AdvDupeClient.LocadedNumOfEnts
+				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LocadedNumOfConst
 				txt = txt.."\nFileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")
-				bottom:Help(txt)
 			elseif AdvDupeClient.Copied then
-				bottom:Help("Unsaved Data Stored in Clipboard")
+				txt = "Unsaved Data Stored in Clipboard"
+				txt = txt.."\nNumber of    Entities: "..AdvDupeClient.LocadedNumOfEnts
+				txt = txt.."\nNumber of Constraints: "..AdvDupeClient.LocadedNumOfConst
 			else
-				bottom:Help("No Data in Clipboard")
+				txt = "No Data in Clipboard"
 			end
+			bottom:Help(txt)
 			--bottom:CheckBox("Debug Save (larger file):", "adv_duplicator_debugsave")
 			if AdvDupeClient.FileLoaded or AdvDupeClient.Copied then
 				bottom:NumSlider("Height Offset:", "adv_duplicator_height", -1024, 1024, 0)
