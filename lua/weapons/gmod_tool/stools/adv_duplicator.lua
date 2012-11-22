@@ -638,7 +638,7 @@ function TOOL:UpdateLoadedFileInfo()
 	net.Start("AdvDupe.UpdateLoadedFileInfo")
 		net.WriteBit(self.FileLoaded)
 		net.WriteBit(self.Copied)
-		net.WriteString(self.Info.Filepath or "")
+		net.WriteString(self.Info.FilePath or "")
 		net.WriteString(self.Info.Creator or "n/a")
 		net.WriteString(self.Info.Desc or "n/a")
 		net.WriteString(self.Info.NumOfEnts or "n/a")
@@ -1215,6 +1215,11 @@ if CLIENT then
 		if menu == "main" or not menu or menu == "" then
 			CPanel:Help((game.SinglePlayer() and "Main" or "Server").." Menu (save and load)")
 			local bottom = vgui.Create( "DForm")
+			
+			-- Hide the blue header
+			bottom.Header:SetVisible(false)
+			bottom.Paint = function(self,w,h) return false end
+			
 			bottom:Button("Open", "adv_duplicator_open")
 			if game.SinglePlayer() then
 				bottom:Button("Save", "adv_duplicator_save_gui")
@@ -1256,15 +1261,13 @@ if CLIENT then
 			CPanel:AddItem(ServerDir)
 			
 			-- Calculate height of the list of dupes
-			bottom:PerformLayout() --do this so bottom:GetTall() will return the correct value -- Still not returning correct value in Gmod13 Beta v39
-			local bottomtall = bottom:GetTall()
-			for k,v in pairs(bottom.Items) do bottomtall = bottomtall + v:GetTall() + 8 end
-			
+			local bottomtall = 32
+			for k,v in pairs(bottom.Items) do bottomtall = bottomtall + v:GetTall() + 18 end
 			local parent = CPanel:GetParent()
 			if parent:GetParent() then parent = parent:GetParent() end
 			
 			-- Clamp *ScrH() - how much space the bottom section needs* between *5 lines* and *20 lines*
-			ServerDir:SetTall(math.Clamp(parent:GetTall()-64-bottomtall,ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*5, ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*#ServerDir:GetLines()))
+			ServerDir:SetTall(math.Clamp(parent:GetTall()-bottomtall,ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*5, ServerDir:GetHeaderHeight() + 20 + ServerDir:GetDataHeight()*#ServerDir:GetLines()))
 			
 			CPanel:AddItem(bottom)
 		elseif menu == "serverdir" then
