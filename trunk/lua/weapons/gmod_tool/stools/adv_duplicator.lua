@@ -1116,32 +1116,24 @@ if CLIENT then
 				if line.is_dir then RunConsoleCommand(concommand_dir, line.key) end
 			end
 			if dir ~= dupeshare.BaseDir then
-				if dir == "Contraption Saver Tool" then
-					local line = list:AddLine("/..")
-					line.is_dir = true
-					line.key = dupeshare.BaseDir
-				else
-					local line = list:AddLine("/..")
-					line.is_dir = true
-					line.key = dupeshare.UpDir(dir)
-				end
-			else
-				if file.Exists("Contraption Saver Tool", "DATA") && file.IsDir("Contraption Saver Tool", "DATA") then
-					local line = list:AddLine("=Contraption Saver Dir=")
-					line.is_dir = true
-					line.key = "Contraption Saver Tool"
-				end
+				local line = list:AddLine("/..")
+				line.is_dir = true
+				line.key = dupeshare.UpDir(dir)
 			end
 			if file.Exists(dir, "DATA") and file.IsDir(dir, "DATA") then
-				for key, val in pairs(file.Find( dir.."/*", "DATA" )) do
-					if not file.IsDir(dir.."/"..val, "DATA") then
-						local line = list:AddLine(val)
-						line.key = dir.."/"..val
-					if line.key == LocalPlayer():GetInfo(concommand_file) then line:SetSelected( true ) end
-					elseif file.IsDir(dir.."/"..val, "DATA") then
-						local line = list:AddLine("/"..val)
+				local files, folders = file.Find( dir.."/*", "DATA" )
+				for _, foldername in pairs(folders) do
+					if file.Exists(dir.."/"..foldername, "DATA") then -- file.Find can return files with invalid names
+						local line = list:AddLine("/"..foldername)
+						line.key = dir.."/"..foldername
 						line.is_dir = true
-						line.key = dir.."/"..val
+					end
+				end
+				for _, filename in pairs(files) do
+					if file.Exists(dir.."/"..filename, "DATA") then -- file.Find can return files with invalid names
+						local line = list:AddLine(filename)
+						line.key = dir.."/"..filename
+						if line.key == LocalPlayer():GetInfo(concommand_file) then line:SetSelected( true ) end
 					end
 				end
 			end
