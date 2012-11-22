@@ -1164,8 +1164,6 @@ if CLIENT then
 			CPanel.Items[i] = nil
 		end
 		
-		PrintTable(CPanel.Items)
-		
 		CPanel:InvalidateLayout()
 		
 		local menu = AdvDupeClient.CurMenu
@@ -1215,60 +1213,46 @@ if CLIENT then
 		
 		--show the current menu
 		if menu == "main" or not menu or menu == "" then
-			if not game.SinglePlayer() then
-				local lbl = Label("Server Menu (save and load)")
-				lbl:SetTextColor(color_black)
-				CPanel:AddItem(lbl)
-			else
-				local lbl = Label("Main Menu (save and load)")
-				lbl:SetTextColor(color_black)
-				CPanel:AddItem(lbl)
-			end
-			local obj = {}
+			CPanel:Help((game.SinglePlayer() and "Main" or "Server").." Menu (save and load)")
 			local bottom = vgui.Create( "DForm")
-			table.insert(obj, bottom:Button("Open", "adv_duplicator_open"))
+			bottom:Button("Open", "adv_duplicator_open")
 			if game.SinglePlayer() then
-				table.insert(obj, bottom:Button("Save", "adv_duplicator_save_gui"))
-				table.insert(obj, bottom:Button("Open Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir"))
+				bottom:Button("Save", "adv_duplicator_save_gui")
+				bottom:Button("Open Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir")
 			else
-				table.insert(obj, bottom:Button("Save To Server", "adv_duplicator_save_gui"))
+				bottom:Button("Save To Server", "adv_duplicator_save_gui")
 				--bottom:Button("Save to Server Then Download", "adv_duplicator_save_cl")
-				table.insert(obj, bottom:Button("Open Upload/Download Menu", "adv_duplicator_cl_menu", "clientupload"))
-				table.insert(obj, bottom:Button("Open Server Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir"))
+				bottom:Button("Open Upload/Download Menu", "adv_duplicator_cl_menu", "clientupload")
+				bottom:Button("Open Server Folder Manager Menu", "adv_duplicator_cl_menu", "serverdir")
 			end
-			table.insert(obj, bottom:Button("Open Paster Menu", "adv_duplicator_cl_menu", "paster"))
+			bottom:Button("Open Paster Menu", "adv_duplicator_cl_menu", "paster")
 			if AdvDupeClient.FileLoaded then
-				bottom:AddItem(Label("File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""))
-				bottom:AddItem(Label("Creator: "..AdvDupeClient.LocadedCreator))
-				bottom:AddItem(Label("Desc: "..AdvDupeClient.LocadedDesc))
-				bottom:AddItem(Label("Date: "..AdvDupeClient.LocadedFileFileDate))
-				bottom:AddItem(Label("Time: "..AdvDupeClient.LocadedFileFileTime))
-				bottom:AddItem(Label("NumOfEnts: "..AdvDupeClient.LocadedNumOfEnts))
-				bottom:AddItem(Label("NumOfConst: "..AdvDupeClient.LocadedNumOfConst))
-				bottom:AddItem(Label("FileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")))
+				local txt = "File Loaded: \""..string.gsub(AdvDupeClient.LoadedFilename, dupeshare.BaseDir, "").."\""
+				txt = txt.."\nCreator: "..AdvDupeClient.LocadedCreator
+				txt = txt.."\nDesc: "..AdvDupeClient.LocadedDesc.."\nDate: "..AdvDupeClient.LocadedFileFileDate
+				txt = txt.."\nTime: "..AdvDupeClient.LocadedFileFileTime
+				txt = txt.."\nNumOfEnts: "..AdvDupeClient.LocadedNumOfEnts
+				txt = txt.."\nNumOfConst: "..AdvDupeClient.LocadedNumOfConst
+				txt = txt.."\nFileVersion: "..(AdvDupeClient.LocadedFileVersion or "n/a")
+				bottom:Help(txt)
 			elseif AdvDupeClient.Copied then
-				bottom:AddItem(Label("Unsaved Data Stored in Clipboard"))
+				bottom:Help("Unsaved Data Stored in Clipboard")
 			else
-				bottom:AddItem(Label("No Data in Clipboard"))
+				bottom:Help("No Data in Clipboard")
 			end
 			--bottom:CheckBox("Debug Save (larger file):", "adv_duplicator_debugsave")
 			if AdvDupeClient.FileLoaded or AdvDupeClient.Copied then
-				table.insert(obj, bottom:NumSlider("Height Offset:", "adv_duplicator_height", -1024, 1024, 0))
-				table.insert(obj, bottom:NumSlider( "Angle Offset:", "adv_duplicator_angle", -180, 180, 0 ))
-				table.insert(obj, bottom:CheckBox("Paste Frozen:", "adv_duplicator_pastefrozen"))
-				table.insert(obj, bottom:CheckBox("Paste w/o Constraints (and frozen):", "adv_duplicator_pastewoconst"))
+				bottom:NumSlider("Height Offset:", "adv_duplicator_height", -1024, 1024, 0)
+				bottom:NumSlider( "Angle Offset:", "adv_duplicator_angle", -180, 180, 0 )
+				bottom:CheckBox("Paste Frozen:", "adv_duplicator_pastefrozen")
+				bottom:CheckBox("Paste w/o Constraints (and frozen):", "adv_duplicator_pastewoconst")
 			end
-			table.insert(obj, bottom:CheckBox("Limited Ghost:", "adv_duplicator_LimitedGhost"))
+			bottom:CheckBox("Limited Ghost:", "adv_duplicator_LimitedGhost")
 			if AdvDupeClient.HasStartPos then
-				table.insert(obj, bottom:CheckBox("Paste at Original Location:", "adv_duplicator_worldOrigin"))
+				bottom:CheckBox("Paste at Original Location:", "adv_duplicator_worldOrigin")
 			end
-			table.insert(obj, bottom:CheckBox("Paste at Original Angles:", "adv_duplicator_worldAngles"))
+			bottom:CheckBox("Paste at Original Angles:", "adv_duplicator_worldAngles")
 			
-			for k, v in pairs(obj) do
-				if v.Label then
-					v.Label:SetTextColor(color_black)
-				end
-			end
 			CPanel:AddItem(ServerDir)
 			
 			-- Calculate height of the list of dupes
@@ -1287,11 +1271,7 @@ if CLIENT then
 			
 			CPanel:Button( "--Back--", "adv_duplicator_cl_menu", "main")
 			
-			if not game.SinglePlayer() then
-				CPanel:AddItem(Label("Server Folder Management"))
-			else
-				CPanel:AddItem(Label("Local Folder Management"))
-			end
+			CPanel:Help((game.SinglePlayer() and "Local" or "Server").." Folder Management")
 			
 			local middle = vgui.Create( "ControlPanel")
 			middle:Button("Make New Folder", "adv_duplicator_makedir_gui", "server")
@@ -1318,7 +1298,7 @@ if CLIENT then
 			
 		elseif menu == "paster" then
 			CPanel:Button("--Back--", "adv_duplicator_cl_menu", "main")
-			CPanel:AddItem(Label("Paster Settings (make with reload)"))
+			CPanel:Help("Paster Settings (make with reload)")
 			CPanel:NumSlider("Spawn Delay", "adv_duplicator_delay", 0, 100, 1)
 			CPanel:NumSlider("Automatic Undo Delay", "adv_duplicator_undo_delay", 0, 100, 1)
 			CPanel:NumSlider("Range", "adv_duplicator_range", 0, 1000, 0)
@@ -1339,27 +1319,27 @@ if CLIENT then
 			
 			if not game.SinglePlayer() then
 			
-				CPanel:AddItem(Label("Upload/Download Menu"))
+				CPanel:Help("Upload/Download Menu")
 				
-				CPanel:AddItem(Label("Files on Server"))
+				CPanel:Help("Files on Server")
 				
 				local middle = vgui.Create( "ControlPanel")
 				if AdvDupeClient.downloading then
-					middle:AddItem(Label("==Download in Progress=="))
+					middle:Help("==Download in Progress==")
 				elseif AdvDupeClient.CanDownload() then
 					middle:Button("Download Selected File", "adv_duplicator_send_cl")
 				else
-					middle:AddItem(Label("Server Disabled Downloads"))
+					middle:Help("Server Disabled Downloads")
 				end
 				
 				if AdvDupeClient.sending then
-					middle:AddItem(Label("==Upload in Progress=="))
+					middle:Help("==Upload in Progress==")
 				elseif AdvDupeClient.CanUpload() then
 					middle:Button("Upload File to server", "adv_duplicator_upload_cl")
 				else
-					middle:AddItem(Label("Server Disabled Uploads"))
+					middle:Help("Server Disabled Uploads")
 				end
-				middle:AddItem(Label("Local Files"))
+				middle:Help("Local Files")
 				middle:PerformLayout() --do this so bottom:GetTall() will return the correct value
 				
 				local listtall = (CPanel:GetParent():GetParent():GetTall()-170-middle:GetTall())/2
@@ -1384,7 +1364,7 @@ if CLIENT then
 			
 			
 			if not game.SinglePlayer() then
-				CPanel:AddItem(Label("Local Folder Management"))
+				CPanel:Help("Local Folder Management")
 				
 				local middle = vgui.Create( "ControlPanel")
 				middle:Button("Make New Folder", "adv_duplicator_makedir_gui", "client")
@@ -1392,7 +1372,7 @@ if CLIENT then
 				middle:Button("Copy", "adv_duplicator_cl_fileopts", "copy")
 				middle:Button("Move", "adv_duplicator_cl_fileopts", "move")
 				middle:Button("Delete", "adv_duplicator_confirmdelete_gui", "client") --"adv_duplicator_cl_fileopts delete"
-				middle:AddItem(Label("Local Files"))
+				middle:Help("Local Files")
 				middle:PerformLayout() --do this so bottom:GetTall() will return the correct value
 				
 				local listtall = (CPanel:GetParent():GetParent():GetTall()-120-middle:GetTall())/2
