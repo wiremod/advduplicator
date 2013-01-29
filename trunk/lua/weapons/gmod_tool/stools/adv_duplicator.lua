@@ -361,7 +361,7 @@ function TOOL:StartGhostEntities( EntityTable, Head, HoldPos, HoldAngle )
 	-- Make the head entity first
 	self.GhostEntities[ Head ] = self:MakeGhostFromTable( EntityTable[ Head ], self.GhostEntities[ Head ], HoldAngle, HoldPos )
 	
-	if not (self.GhostEntities[ Head ] and self.GhostEntities[ Head ]:IsValid()) then return self:SetPercent(-1) end
+	if not IsValid(self.GhostEntities[ Head ]) then return self:SetPercent(-1) end
 	
 	-- Set NW vars for clientside
 	self.Weapon:SetNetworkedEntity( "GhostEntity", self.GhostEntities[ Head ] )
@@ -370,7 +370,8 @@ function TOOL:StartGhostEntities( EntityTable, Head, HoldPos, HoldAngle )
 	self.Weapon:SetNetworkedVector( "HoldPos", HoldPos )
 	self.Weapon:SetNetworkedAngle( "HoldAngle", EntityTable[ Head ].LocalAngle )
 	
-	if not self.GhostEntities[ Head ] or not self.GhostEntities[ Head ]:IsValid() then
+	if not IsValid(self.GhostEntities[ Head ]) then
+		self:ReleaseGhostEntity()
 		self.GhostEntities = nil
 		self.UnfinishedGhost = false
 		return
@@ -447,8 +448,10 @@ function TOOL:UpdateGhostEntities()
 		
 	end
 	
-	if not GhostEnt or not GhostEnt:IsValid() then 
+	if not IsValid(GhostEnt) then 
+		self:ReleaseGhostEntity()
 		self.GhostEntities = nil
+		self.UnfinishedGhost = false
 		return
 	end
 	
@@ -495,7 +498,8 @@ function TOOL:AddToGhost()
 	
 	if self.GhostEntitiesCount < limit then
 		
-		if not self.GhostEntities[self.HeadEntityIdx] or not self.GhostEntities[self.HeadEntityIdx]:IsValid() then
+		if not IsValid(self.GhostEntities[self.HeadEntityIdx]) then
+			self:ReleaseGhostEntity()
 			self.GhostEntities = nil
 			self.UnfinishedGhost = false
 			return
