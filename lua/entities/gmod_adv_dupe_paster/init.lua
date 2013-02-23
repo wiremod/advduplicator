@@ -220,11 +220,15 @@ end
 
 
 function ENT:OnRemove()
-	Wire_Remove(self)
+	if(WireLib != nil)then
+		Wire_Remove(self)
+	end
 end
 
 function ENT:OnRestore()
-    Wire_Restored(self)
+	if(WireLib != nil)then
+		Wire_Restored(self)
+	end
 end
 
 
