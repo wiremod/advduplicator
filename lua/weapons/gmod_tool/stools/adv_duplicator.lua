@@ -92,9 +92,11 @@ function TOOL:LeftClick( trace )
 			DupePos, DupeAngle = trace.HitPos, angle - HoldAngle
 		end
 		
+		local height = self:GetClientNumber( "height" )
+		if(height > 1024)then height = 1024 end
 		AdvDupe.StartPaste(
 			self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx,
-			DupePos + Vector(0,0,self:GetClientNumber( "height" )), DupeAngle,
+			DupePos + Vector(0,0,height), DupeAngle,
 			self.NumOfEnts, self.NumOfConst, PasteFrozen, PastewoConst
 		)
 		
@@ -209,16 +211,16 @@ function TOOL:Reload( trace )
 	if CLIENT then return true end
 	
 	local ply = self:GetOwner()
-	
-	if self.Legacy then
-		WireLib.AddNotify(ply, "Paster does not support old saves!", NOTIFY_GENERIC, 7)
-		return false
+	if WireLib != nil then
+		if self.Legacy then
+			WireLib.AddNotify(ply, "Paster does not support old saves!", NOTIFY_GENERIC, 7)
+			return false
+		end
+		if not self.Entities then
+			WireLib.AddNotify(ply, "No copied data for Paster!", NOTIFY_GENERIC, 7)
+			return false
+		end
 	end
-	if not self.Entities then
-		WireLib.AddNotify(ply, "No copied data for Paster!", NOTIFY_GENERIC, 7)
-		return false
-	end
-	
 	local paster = trace.Entity -- assume we are aiming at a paster
 	if trace.Entity:IsValid() and trace.Entity:GetClass() == "gmod_adv_dupe_paster" and trace.Entity:GetPlayer() == ply then -- if we are not, create a new paster
 		--TODO: clear previous numpad bindings
@@ -238,9 +240,9 @@ function TOOL:Reload( trace )
 
 		local min = paster:OBBMins()
 		paster:SetPos( trace.HitPos - trace.HitNormal * min.z )
-
-		local const = WireLib.Weld(paster, trace.Entity, trace.PhysicsBone, true)
-
+		if(WireLib != nil)then
+			local const = WireLib.Weld(paster, trace.Entity, trace.PhysicsBone, true)
+		end
 		undo.Create("Paster")
 			undo.AddEntity( paster )
 			undo.SetPlayer( ply )
@@ -415,6 +417,7 @@ function TOOL:UpdateGhostEntities()
 		HoldPos = self.HoldPos
 		
 		local height = self:GetClientNumber( "height" )
+		if(height > 1024)then height = 1024 end
 		self.Weapon:SetNetworkedFloat( "height", height )	
 		
 		self.Weapon:SetNetworkedBool( "worldOrigin", false )
@@ -444,7 +447,9 @@ function TOOL:UpdateGhostEntities()
 		else
 			-- Paste at Original Angles or nothing checked
 		end
-		trace.HitPos = trace.HitPos + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
+		local height = self.Weapon:GetNetworkedFloat( "height" )
+		if(height > 1024)then height = 1024 end
+		trace.HitPos = trace.HitPos + Vector(0,0,height)
 		
 	end
 	
@@ -463,7 +468,7 @@ function TOOL:UpdateGhostEntities()
 	
 	local PhysObj = GhostEnt:GetPhysicsObject()
 	if PhysObj and PhysObj:IsValid() then
-		
+		if(trace.HitPos.z > 1024)then trace.HitPos.z = 1024 end
 		PhysObj:EnableMotion( false )
 		PhysObj:SetPos( TargetPos + trace.HitPos )
 		
@@ -514,7 +519,7 @@ function TOOL:AddToGhost()
 		self.GhostEntities[self.HeadEntityIdx].Pos 		=	self.Entities[self.HeadEntityIdx].LocalPos
 		self.GhostEntities[self.HeadEntityIdx].Angle 	=	self.Entities[self.HeadEntityIdx].LocalAngle - self.HoldAngle
 		self.Weapon:SetNetworkedVector( "HeadPos",			self.GhostEntities[self.HeadEntityIdx].Pos )
-		self.Weapon:SetNetworkedAngle( 	"HeadAngle",		self.GhostEntities[self.HeadEntityIdx].Angle )	
+		self.Weapon:SetNetworkedAngle( 	"HeadAngle",		self.GhostEntities[self.HeadEntityIdx].Angle )
 		self.Weapon:SetNetworkedVector( "HoldPos",			self.HoldPos )
 		
 		local ghostcount = 0
@@ -746,7 +751,7 @@ function TOOL:LoadFileCallBack( filepath, Entities, Constraints, DupeInfo, DORIn
 	if ( CLIENT ) then return end
 	
 	if Entities then
-		
+
 		self.HeadEntityIdx	= HeadEntityIdx
 		self.HoldAngle 		= HoldAngle or Angle(0,0,0)
 		self.HoldPos 		= HoldPos or Vector(0,0,0)
