@@ -91,7 +91,8 @@ function TOOL:LeftClick( trace )
 			--HoldAngle.yaw = self:GetClientNumber( "angle" )
 			DupePos, DupeAngle = trace.HitPos, angle - HoldAngle
 		end
-		
+		local height = self:GetClientNumber( "height" )
+		if(height > 1024)then height = 1024 end
 		AdvDupe.StartPaste(
 			self:GetOwner(), self.Entities, self.Constraints, self.HeadEntityIdx,
 			DupePos + Vector(0,0,self:GetClientNumber( "height" )), DupeAngle,
@@ -415,6 +416,7 @@ function TOOL:UpdateGhostEntities()
 		HoldPos = self.HoldPos
 		
 		local height = self:GetClientNumber( "height" )
+		if(height > 1024)then height = 1024 end
 		self.Weapon:SetNetworkedFloat( "height", height )	
 		
 		self.Weapon:SetNetworkedBool( "worldOrigin", false )
@@ -444,7 +446,9 @@ function TOOL:UpdateGhostEntities()
 		else
 			-- Paste at Original Angles or nothing checked
 		end
-		trace.HitPos = trace.HitPos + Vector(0,0,self.Weapon:GetNetworkedFloat( "height" ))
+		local height = self.Weapon:GetNetworkedFloat( "height" )
+		if(height > 1024)then height = 1024 end
+		trace.HitPos = trace.HitPos + Vector(0,0,height)
 		
 	end
 	
