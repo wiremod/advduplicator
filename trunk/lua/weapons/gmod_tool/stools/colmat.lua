@@ -1,4 +1,3 @@
-
 TOOL.Category		= "Render"
 TOOL.Name			= "#Tool.colmat.name"
 TOOL.Command		= nil
@@ -27,6 +26,7 @@ local LastMatList = "OverrideMaterialsDefault"
 local Lists = {}
 
 local function SetMaterial( Player, Entity, Data )
+	if string.lower( Data.MaterialOverride ) == "pp/copy" then return end
 	Entity:SetMaterial( Data.MaterialOverride )
 	if ( SERVER ) then duplicator.StoreEntityModifier( Entity, "material", Data ) end
 	return true
