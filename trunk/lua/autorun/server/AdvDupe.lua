@@ -365,7 +365,12 @@ function AdvDupe.LoadDupeTableFromFile( ply, filepath )
 	end
 	
 	AdvDupe.SetPercent(ply, 10)
-	timer.Simple(.1, function() Load1( ply, filepath, tool, file.Read(dupeshare.ParsePath(filepath), "DATA") or "") end)
+	local f, temp = file.Open(dupeshare.ParsePath(filepath), "r", "DATA"), ""
+	if f then
+		temp = f:Read( f:Size() )
+		f:Close()
+	end
+	timer.Simple(.1, function() Load1( ply, filepath, tool, temp) end)
 	
 end
 
@@ -1406,7 +1411,12 @@ function AdvDupe.SendSaveToClient( ply, filename )
 	
 	filename = dupeshare.GetFileFromFilename(filepath)
 	
-	AdvDupe.SendBuffer[ply] = util.Compress(file.Read(dupeshare.ParsePath(filepath)) or "")
+	local f, temp = file.Open(dupeshare.ParsePath(filepath), "r", "DATA"), ""
+	if f then
+		temp = f:Read( f:Size() )
+		f:Close()
+	end
+	AdvDupe.SendBuffer[ply] = util.Compress(temp)
 	
 	-- Consider compression
 	
