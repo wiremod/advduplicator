@@ -1675,7 +1675,7 @@ local function AdvDupeThink()
 			else
 				if ( TimedPasteData[TimedPasteDataCurrent].NormPaste ) and ( TimedPasteData[TimedPasteDataCurrent].Delay < CurTime() ) then
 					
-					local NoFail, Result = pcall( AdvDupe.NormPasteFromTable, TimedPasteData[TimedPasteDataCurrent] )
+					local NoFail, Result = xpcall( AdvDupe.NormPasteFromTable, debug.traceback, TimedPasteData[TimedPasteDataCurrent] )
 					if ( !NoFail ) then
 						MsgN("AdvDupeERROR: NormPaste Failed, Error: ",tostring(Result))
 					end
@@ -1686,7 +1686,7 @@ local function AdvDupeThink()
 					
 				elseif ( TimedPasteData[TimedPasteDataCurrent].Delay < CurTime() ) then
 					
-					local NoFail, Result = pcall( AdvDupe.OverTimePasteProcessFromTable )
+					local NoFail, Result = xpcall( AdvDupe.OverTimePasteProcessFromTable, debug.traceback )
 					if ( !NoFail ) then
 						MsgN("AdvDupeERROR: OverTimePaste Failed in stage ",(TimedPasteData[TimedPasteDataCurrent].Stage or "BadStage"),", Error: ",tostring(Result))
 						TimedPasteData[TimedPasteDataCurrent].Stage = 5
@@ -1735,11 +1735,11 @@ local function AdvDupeThink()
 	-- Run Special Timers
 	for key, value in pairs( Timers ) do
 		if ( value.Finish <= CurTime() ) then
-			local b, e = pcall( value.Func, unpack( value.FuncArgs ) )
+			local b, e = xpcall( value.Func, debug.traceback, unpack( value.FuncArgs ) )
 			if ( !b ) then
 				MsgN("AdvDupe Timer Error: ",tostring(e))
 				if ( value.OnFailFunc ) then
-					local b, e = pcall( value.OnFailFunc, unpack( value.OnFailArgs ) )
+					local b, e = xpcall( value.OnFailFunc, debug.traceback, unpack( value.OnFailArgs ) )
 					if ( !b ) then
 						MsgN("AdvDupe Timer Error: OnFailFunc Error: ",tostring(e))
 					end
@@ -1986,7 +1986,7 @@ function AdvDupe.Paste( Player, EntityList, ConstraintList, HeadEntityIdx, Offse
 	for EntID, Ent in pairs( CreatedEntities ) do	
 		
 		--AdvDupe.AfterPasteApply( Player, Ent, CreatedEntities )
-		local NoFail, Result = pcall( AdvDupe.AfterPasteApply, Player, Ent, CreatedEntities )
+		local NoFail, Result = xpcall( AdvDupe.AfterPasteApply, debug.traceback, Player, Ent, CreatedEntities )
 		if ( !NoFail ) then
 			MsgN("AdvDupeERROR: AfterPasteApply, Error: ",tostring(Result))
 		end
@@ -2184,7 +2184,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 				local Ent		= CreatedEntities[ EntID ]
 				
 				if (Ent != nil) then
-					local NoFail, Result = pcall( AdvDupe.AfterPasteApply, Player, Ent, CreatedEntities )
+					local NoFail, Result = xpcall( AdvDupe.AfterPasteApply, debug.traceback, Player, Ent, CreatedEntities )
 					if ( !NoFail ) then
 						MsgN("AdvDupeERROR: AfterPasteApply, Error: ",tostring(Result))
 					end
@@ -2392,12 +2392,12 @@ function AdvDupe.PasteEntity( Player, EntTable, EntID, Offset, HoldAngle )
 		Ent.EntityMods = table.Copy( EntTable.EntityMods )
 		Ent.PhysicsObjects = table.Copy( EntTable.PhysicsObjects )
 		
-		local Success, Result = pcall( duplicator.ApplyEntityModifiers, Player, Ent )
+		local Success, Result = xpcall( duplicator.ApplyEntityModifiers, debug.traceback, Player, Ent )
 		if ( !Success ) then
 			MsgN("AdvDupeERROR: ApplyEntityModifiers, Error: ",tostring(Result))
 		end
 		
-		local Success, Result = pcall( duplicator.ApplyBoneModifiers, Player, Ent )
+		local Success, Result = xpcall( duplicator.ApplyBoneModifiers, debug.traceback, Player, Ent )
 		if ( !Success ) then
 			MsgN("AdvDupeERROR: ApplyBoneModifiers Error: ",tostring(Result))
 		end
@@ -2527,15 +2527,15 @@ function AdvDupe.CreateEntityFromTable( Player, EntTable, ID, Offset, HoldAngle 
 	--return EntityClass.Func( Player, unpack(EntTable.arglist) )
 	local ok, Result
 	if ( EntTable.Class == "prop_physics" ) then
-		ok, Result = pcall( AdvDupe.MakeProp, Player, unpack(EntTable.arglist) )
+		ok, Result = xpcall( AdvDupe.MakeProp, debug.traceback, Player, unpack(EntTable.arglist) )
 	elseif ( EntTable.Class == "gmod_thruster" ) then -- Adds missing sound information to old dupes.
 		if ( EntTable.arglist[10] == false and EntTable.arglist[11] == true ) then
 			EntTable.arglist[10] = ""
 			EntTable.arglist[11] = false
 		end
-		ok, Result = pcall( EntityClass.Func, Player, unpack(EntTable.arglist) )
+		ok, Result = xpcall( EntityClass.Func, debug.traceback, Player, unpack(EntTable.arglist) )
 	else
-		ok, Result = pcall( EntityClass.Func, Player, unpack(EntTable.arglist) )
+		ok, Result = xpcall( EntityClass.Func, debug.traceback, Player, unpack(EntTable.arglist) )
 	end
 	if ( !ok ) then
 		MsgN("AdvDupeERROR: CreateEntity failed to make \"",(EntTable.Class or "NIL" ),"\", Error: ",tostring(Result))
@@ -2612,7 +2612,7 @@ function AdvDupe.CreateConstraintFromTable( Player, Constraint, EntityList, Offs
 	
 	
 	
-	local ok, Result = pcall( Factory.Func, unpack(Args) )
+	local ok, Result = xpcall( Factory.Func, debug.traceback, unpack(Args) )
 	if ( !ok ) then
 		MsgN("AdvDupeERROR: CreateConstraint failed to make \"",(Constraint.Type or "NIL"),"\", Error: ",tostring(Result))
 		AdvDupe.SendClientError( Player, "Failed to make \""..(Constraint.Type or "NIL").."\"" )
@@ -2754,7 +2754,7 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 	--MsgN("EntCheck on Class: ",EntTable.Class)
 	for HookName, TheHook in pairs (CheckFunctions) do
 		
-		local Success, Result = pcall( TheHook.Func, Player, EntTable.Class, EntTable )
+		local Success, Result = xpcall( TheHook.Func, debug.traceback, Player, EntTable.Class, EntTable )
 		if ( !Success ) then
 			ErrorNoHalt("AdvDupeERROR: Entity check hook \"",HookName,"\" failed, removing.\nHook Error: \"",tostring(Result),"\"\n")
 			
@@ -2764,7 +2764,7 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 			
 			if ( OnFailCallBack ) then
 				--MsgN("OnFailCallBack")
-				local Success, Result = pcall( OnFailCallBack, HookName )
+				local Success, Result = xpcall( OnFailCallBack, debug.traceback, HookName )
 				if ( !Success ) then
 					ErrorNoHalt("AdvDupeERROR: WTF! \"",HookName,"\" OnFailCallBack failed too! Tell who ever make that hook that they're doing it wrong. Error: \"",tostring(Result),"\"\n")
 				end
