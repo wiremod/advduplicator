@@ -953,7 +953,7 @@ if SERVER then
 		then filepath = pl:GetInfo( "adv_duplicator_load_filename" )
 		else filepath = tostring(args[1]) end
 		
-		filepath = AdvDupe[pl].cdir.."/"..filepath
+		filepath = (AdvDupe[pl].cdir.."/"..filepath):lower()
 		
 		if ( file.Exists(filepath, "DATA") && file.IsDir(filepath, "DATA") ) then
 			--dupeshare.UsePWSys
@@ -978,20 +978,18 @@ if SERVER then
 		local tool = pl:GetActiveWeapon()
 		if not dupeshare.CurrentToolIsDuplicator(tool) then return end
 		
-		local dir = string.Implode(" ", args)
+		local dir = string.Implode(" ", args):lower()
 		
 		if dir == "" then
 			dir = AdvDupe.GetPlayersFolder(pl)
 		elseif not game.SinglePlayer() then
-			local plydir = dupeshare.ReplaceBadChar(tostring(pl:SteamID()))
-			plydir = string.gsub(plydir, "STEAM_1", "STEAM_0") -- I think this was needed cause Valve randomly changed everybody's IDs - Jimlad
-			plydir = dupeshare.BaseDir.."/"..plydir
+			local plydir = AdvDupe.GetPlayersFolder(pl)
 			
 			local baddir = (dir.."/"):sub(1, plydir:len()+1) ~= plydir.."/"
 			if baddir then
 				-- The directory isn't the player's, might it be a public folder?
 				for _,pubdir in pairs(dupeshare.PublicDirs) do
-					pubdir = dupeshare.BaseDir.."/"..pubdir
+					pubdir = (dupeshare.BaseDir.."/"..pubdir):lower()
 					if dir:sub(1, pubdir:len()) == pubdir then
 						-- The directory starts with adv_duplicator/apublicfolder/, we're okay
 						baddir = false
@@ -1023,7 +1021,7 @@ if SERVER then
 		if (!args[1]) then
 			AdvDupe[pl].cdir2 = AdvDupe[pl].cdir
 		else
-			local dir = string.Implode(" ", args)
+			local dir = string.Implode(" ", args):lower()
 			if ( file.Exists(dir, "DATA") && file.IsDir(dir, "DATA") ) then
 				--dupeshare.UsePWSys
 				AdvDupe[pl].cdir2 = dir
@@ -1115,6 +1113,7 @@ if CLIENT then
 	end
 	
 	local function build_clientdir_list(dir, concommand_file, concommand_dir)
+		dir = dir:lower()
 		local list = vgui.Create("DListView")
 			list:SetMultiSelect(false)
 			function list:OnRowSelected(LineID, line)
@@ -1412,7 +1411,7 @@ if CLIENT then
 	local function AdvDupeCl_OpenDir(pl, command, args)
 		if !pl:IsValid() or !pl:IsPlayer() then return end
 		
-		local dir = string.Implode(" ", args)
+		local dir = string.Implode(" ", args):lower()
 		
 		if ( file.Exists(dir, "DATA") && file.IsDir(dir, "DATA") ) then
 			AdvDupeClient.CLcdir = dir
@@ -1426,7 +1425,7 @@ if CLIENT then
 	local function AdvDupeCl_OpenDir2(pl, command, args)
 		if !pl:IsValid() or !pl:IsPlayer() then return end
 		
-		local dir = string.Implode(" ", args)
+		local dir = string.Implode(" ", args):lower()
 		
 		if ( file.Exists(dir, "DATA") && file.IsDir(dir, "DATA") ) then
 			AdvDupeClient.CLcdir2 = dir
@@ -1446,7 +1445,7 @@ if CLIENT then
 		then filename = pl:GetInfo( "adv_duplicator_load_filename_cl" )
 		else filename = tostring(args[1]) end
 		
-		AdvDupeClient.UpLoadFile( pl, filename )
+		AdvDupeClient.UpLoadFile( pl, filename:lower() )
 		
 		AdvDuplicator_UpdateControlPanel()
 	end
