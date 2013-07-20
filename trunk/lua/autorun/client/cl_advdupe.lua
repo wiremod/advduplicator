@@ -176,7 +176,7 @@ concommand.Add("adv_duplicator_cl_fileopts", FileOptsCommand)
 function AdvDupeClient.FileOpts(action, filename, dir, dir2)
 	if ( !action ) or ( !filename ) or ( !dir ) then return end
 	
-	local file1 = dir.."/"..filename
+	local file1 = (dir.."/"..filename):lower()
 	--Msg("action= "..action.."  filename= "..filename.."  dir= "..dir.."  dir2= "..(dir2 or "none").."\n")
 	
 	if (action == "delete") then
