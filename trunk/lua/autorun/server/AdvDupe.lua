@@ -82,11 +82,9 @@ end
   Load and return dupe tables from given file
 -----------------------------------------------------------]]
 function AdvDupe.LoadDupeTableFromFile( ply, filepath )
+	filepath = filepath:lower()
 	
 	if ( !file.Exists(filepath, "DATA") ) then return end
-	
-	--load from file
-	--local temp = file.Read(filepath)
 	
 	local tool = AdvDupe.GetAdvDupeToolObj(ply)
 	if ( !tool ) then return end
@@ -828,7 +826,7 @@ duplicator.RegisterEntityModifier( "MassMod", SetMassMod )
 if (dupeshare and dupeshare.PublicDirs) then
 	AdvDupe.PublicDirs = {}
 	for k, v in pairs(dupeshare.PublicDirs) do
-		local dir = dupeshare.BaseDir.."/"..v
+		local dir = (dupeshare.BaseDir.."/"..v):lower()
 		AdvDupe.PublicDirs[v] = dir
 		if ( !file.Exists(dir, "DATA") ) or ( file.Exists(dir, "DATA") and !file.IsDir(dir, "DATA") ) then 
 			file.CreateDir( dupeshare.ParsePath(dir), "DATA" )
@@ -851,7 +849,7 @@ function AdvDupe.GetPlayersFolder(ply)
 		dir = dir.."/"..name
 	end
 	
-	return dir
+	return dir:lower()
 end
 
 
@@ -915,7 +913,7 @@ concommand.Add("adv_duplicator_fileoptsrename", FileOptsRenameCommand)
 function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 	if not filename or not dir then return end
 	
-	local file1 = dir.."/"..filename
+	local file1 = (dir.."/"..filename):lower()
 	--MsgN("action= ",action,"  filename= ",filename,"  dir= ",dir,"  dir2= ",(dir2 or "none"))
 	
 	if (!AdvDupe.CheckPerms(ply, "", dir, "access")) then return end
@@ -928,7 +926,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		
 	elseif (action == "copy") and AdvDupe.CheckPerms(ply, "", dir2, "write") then
 		
-		local file2 = dir2.."/"..filename
+		local file2 = (dir2.."/"..filename):lower()
 		if file.Exists(file2, "DATA") then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir2, filename)
@@ -976,7 +974,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		
 	elseif (action == "duplicate") and AdvDupe.CheckPerms(ply, "", dir, "write") then
 		
-		local file2 = dir.."/"..dir2 --using dir2 to hold the new filename
+		local file2 = (dir.."/"..dir2):lower() --using dir2 to hold the new filename
 		if file.Exists(file2, "DATA") then
 			local filename2 = ""
 			file2, filename2 = dupeshare.FileNoOverWriteCheck(dir, dir2)
