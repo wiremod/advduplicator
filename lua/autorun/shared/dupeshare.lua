@@ -434,6 +434,7 @@ end
 	returns filepath (dir.."/"..filename..".txt")
 ---------------------------------------------------------*/
 function dupeshare.FileNoOverWriteCheck( dir, filename )
+	dir = dir:lower()
 
 	if !file.Exists(dir, "DATA") then
 		file.CreateDir(dir, "DATA")
@@ -514,7 +515,7 @@ function dupeshare.ParsePath(path)
 	    (string.find(gpath,"\\%.") ~= nil)) then
 		return "adv_duplicator\\_"
 	else
-		return tpath
+		return tpath:lower()
 	end
 end
 
