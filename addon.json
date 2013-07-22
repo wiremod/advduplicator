@@ -1,0 +1,15 @@
+{
+	"title"		:	"Advanced Duplicator",
+	"type"		:	"tool",
+	"tags"		:	[ "build", "fun" ],
+	"description":	"A tool for duplicating contraptions that include many complex components including Wiremod devices, and most other SENTs.",
+	"ignore"	:
+	[
+		"*.svn*",
+		"*.txt",
+		".git*",
+		".gitignore",
+		"license",
+		"readme.md"
+	]
+}
