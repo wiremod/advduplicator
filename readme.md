@@ -6,7 +6,8 @@ The Advanced Duplicator is a tool to let you duplicate contraptions that include
 
 Simply clone this repository into your `addons` folder:
 
-    git clone https://github.com/wiremod/AdvDuplicator.git addons/AdvDuplicator
+    cd "%programfiles(x86)%/Steam/SteamApps/common/GarrysMod/garrysmod/addons"
+    git clone https://github.com/wiremod/AdvDuplicator.git AdvDuplicator
 
 # License
 
