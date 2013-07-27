@@ -586,6 +586,7 @@ function AdvDupe.GetSaveableEntity( Ent, Offset )
 	SaveableEntity.BoneMods			= table.Copy( Tab.BoneMods )
 	SaveableEntity.EntityMods		= table.Copy( Tab.EntityMods )
 	SaveableEntity.PhysicsObjects	= table.Copy( Tab.PhysicsObjects )
+	if Ent.GetNetworkVars then SaveableEntity.DT = Ent:GetNetworkVars() end
 	
 	if IsValid( Ent:GetParent() ) then
 		SaveableEntity.SavedParentIdx = Ent:GetParent():EntIndex()
@@ -2401,6 +2402,7 @@ function AdvDupe.PasteEntity( Player, EntTable, EntID, Offset, HoldAngle )
 		end
 		
 		if ( EntTable.Skin ) then Ent:SetSkin( EntTable.Skin ) end
+		if ( Ent.RestoreNetworkVars ) then Ent:RestoreNetworkVars( EntTable.DT ) end
 		
 		if Ent:GetClass() == "prop_vehicle_prisoner_pod" and Ent:GetModel() != "models/vehicles/prisoner_pod_inner.mdl" and !Ent.HandleAnimation then
 			local function FixChair( vehicle, Player )
