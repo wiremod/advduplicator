@@ -290,6 +290,9 @@ function TOOL:Think()
 	
 end
 
+-- the EntityModifiers that will be applied to the ghost
+local GhostModifiers = { "material", "colour" }
+
 --
 --	Make the ghost entities
 --
@@ -306,21 +309,30 @@ function TOOL:MakeGhostFromTable( EntTable, pParent, HoldAngle, HoldPos )
 	end
 	
 	-- If there are too many entities we might not spawn..
-	if not GhostEntity or GhostEntity == NULL then return end
+	if not IsValid(GhostEntity) then return end
 	
 	duplicator.DoGeneric( GhostEntity, EntTable )
 	
 	GhostEntity:SetPos( EntTable.LocalPos + HoldPos )
 	GhostEntity:SetAngles( EntTable.LocalAngle )
 	GhostEntity:Spawn()
-	
+
+	for _, modifier in ipairs(GhostModifiers) do
+		if EntTable.EntityMods[modifier] then
+			duplicator.EntityModifiers[modifier](self:GetOwner(), GhostEntity, EntTable.EntityMods[modifier])
+		end
+	end
+
 	GhostEntity:DrawShadow( false )
 	GhostEntity:SetMoveType( MOVETYPE_NONE )
 	GhostEntity:SetSolid( SOLID_VPHYSICS );
 	GhostEntity:SetNotSolid( true )
 	GhostEntity:SetRenderMode( RENDERMODE_TRANSALPHA )
-	GhostEntity:SetColor( Color(255, 255, 255, 150) )
-	
+
+	local color = GhostEntity:GetColor()
+	color.a = color.a * 150 / 255
+	GhostEntity:SetColor( color )
+
 	GhostEntity.Pos 	= EntTable.LocalPos
 	GhostEntity.Angle 	= EntTable.LocalAngle - HoldAngle
 	
