@@ -72,7 +72,6 @@ local materials = {
 	"phoenix_storms/airboat_blur02",
 	"phoenix_storms/amraam",
 	"phoenix_storms/barrel",
-	"phoenix_storms/barrel_fps",
 	"phoenix_storms/black_chrome",
 	"phoenix_storms/bluemetal",
 	"phoenix_storms/bomb",
@@ -255,6 +254,12 @@ local materials = {
 	"models/balloon/balloon_milfman"
 }
 
+-- Get a list of all current materials so we don't add duplicates
+local AllMats = {}
+for _, material in pairs(list.Get("OverrideMaterials")) do
+	AllMats[material] = true
+end
+
 for _, material in ipairs(materials) do
-	list.Add("MaterialOverride", material)
+	if not AllMats[material] then list.Add("OverrideMaterials", material) end
 end
