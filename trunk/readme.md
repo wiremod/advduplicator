@@ -11,7 +11,7 @@ Wiremod is now available via the Steam Workshop! Go to [its Workshop page][works
 Simply clone this repository into your `addons` folder:
 
     cd "%programfiles(x86)%/Steam/SteamApps/common/GarrysMod/garrysmod/addons"
-    git clone https://github.com/wiremod/AdvDuplicator.git AdvDuplicator
+    git clone https://github.com/wiremod/advduplicator.git advduplicator
 
 # License
 
