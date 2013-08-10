@@ -256,5 +256,5 @@ local materials = {
 }
 
 for _, material in ipairs(materials) do
-	list.Add("MaterialOverride", v)
+	list.Add("MaterialOverride", material)
 end
