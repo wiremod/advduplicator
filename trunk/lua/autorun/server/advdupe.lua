@@ -534,6 +534,7 @@ function AdvDupe.GetSaveableEntity( Ent, Offset )
 			Tab.PhysicsObjects[ Bone ].Pos = PhysObj:GetPos()
 			Tab.PhysicsObjects[ Bone ].Angle = PhysObj:GetAngles()
 			Tab.PhysicsObjects[ Bone ].Frozen = !PhysObj:IsMoveable()
+			if PhysObj:IsGravityEnabled() == false then Tab.PhysicsObjects[ Bone ].NoGrav = true end
 		end
 	end
 	
