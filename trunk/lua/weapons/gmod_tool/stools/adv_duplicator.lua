@@ -471,7 +471,6 @@ function TOOL:UpdateGhostEntities()
 		return
 	end
 	
-	if GhostEnt:GetColor() != Color(255,255,255,150) then GhostEnt:SetColor(Color(255,255,255,150)) end // weird bug
 	GhostEnt:SetMoveType( MOVETYPE_VPHYSICS )
 	GhostEnt:SetNotSolid( true )
 	
