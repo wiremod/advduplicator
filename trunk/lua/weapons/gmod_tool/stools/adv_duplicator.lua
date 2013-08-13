@@ -318,7 +318,7 @@ function TOOL:MakeGhostFromTable( EntTable, pParent, HoldAngle, HoldPos )
 	GhostEntity:Spawn()
 
 	for _, modifier in ipairs(GhostModifiers) do
-		if EntTable.EntityMods[modifier] then
+		if EntTable.EntityMods and EntTable.EntityMods[modifier] then
 			duplicator.EntityModifiers[modifier](self:GetOwner(), GhostEntity, EntTable.EntityMods[modifier])
 		end
 	end
