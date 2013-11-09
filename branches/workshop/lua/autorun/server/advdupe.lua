@@ -723,7 +723,7 @@ function AdvDupe.Copy( Ent, EntTable, ConstraintTable, Offset )
 	if ( !constraint.HasConstraints( Ent ) ) then return EntTable, ConstraintTable end
 	
 	for key, ConstraintEntity in pairs( Ent.Constraints ) do
-		if ( !ConstraintTable[ ConstraintEntity ] ) then
+		if ( !ConstraintTable[ ConstraintEntity ] ) and ConstraintEntity.Type != "" then
 			local ConstTable, ents = AdvDupe.GetSaveableConst( ConstraintEntity, Offset )
 			ConstraintTable[ ConstraintEntity ] = ConstTable
 			for k,e in pairs(ents) do
