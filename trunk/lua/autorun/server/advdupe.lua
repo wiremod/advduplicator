@@ -953,7 +953,7 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		AdvDupe.UpdateList(ply)
 		
 	elseif (action == "move") then
-		if not AdvDupe.CheckPerms(ply, "", dir2, "delete") then 
+		if not AdvDupe.CheckPerms(ply, "", dir, "delete") then 
 			AdvDupe.SendClientError(ply, "You lack delete permissions in "..dir)
 			return 
 		end
