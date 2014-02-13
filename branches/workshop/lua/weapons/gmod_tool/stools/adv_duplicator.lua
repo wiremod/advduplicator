@@ -513,7 +513,7 @@ function TOOL:AddToGhost()
 	
 	if self.GhostEntitiesCount < limit then
 		
-		if not IsValid(self.GhostEntities[self.HeadEntityIdx]) then
+		if not self.GhostEntities or not IsValid(self.GhostEntities[self.HeadEntityIdx]) then
 			self:ReleaseGhostEntity()
 			self.GhostEntities = nil
 			self.UnfinishedGhost = false
