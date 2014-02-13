@@ -918,15 +918,26 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 	local file1 = (dir.."/"..filename):lower()
 	--MsgN("action= ",action,"  filename= ",filename,"  dir= ",dir,"  dir2= ",(dir2 or "none"))
 	
-	if (!AdvDupe.CheckPerms(ply, "", dir, "access")) then return end
+	if not AdvDupe.CheckPerms(ply, "", dir, "access") then 
+		AdvDupe.SendClientError(ply, "You lack access permissions in "..dir)
+		return 
+	end
 	
-	if (action == "delete") and AdvDupe.CheckPerms(ply, "", dir, "delete") then
+	if (action == "delete") then
+		if not AdvDupe.CheckPerms(ply, "", dir, "delete") then 
+			AdvDupe.SendClientError(ply, "You lack delete permissions in "..dir)
+			return 
+		end
 		
 		file.Delete(dupeshare.ParsePath(file1))
 		AdvDupe.HideGhost(ply, false)
 		AdvDupe.UpdateList(ply)
 		
-	elseif (action == "copy") and AdvDupe.CheckPerms(ply, "", dir2, "write") then
+	elseif (action == "copy") then
+		if not AdvDupe.CheckPerms(ply, "", dir2, "write") then 
+			AdvDupe.SendClientError(ply, "You lack write permissions in "..dir2)
+			return 
+		end
 		
 		local file2 = (dir2.."/"..filename):lower()
 		if file.Exists(file2, "DATA") then
@@ -941,8 +952,15 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		file.Write(dupeshare.ParsePath(file2), file.Read(dupeshare.ParsePath(file1), "DATA") or "")
 		AdvDupe.UpdateList(ply)
 		
-	elseif (action == "move") and AdvDupe.CheckPerms(ply, "", dir, "delete")
-							and AdvDupe.CheckPerms(ply, "", dir2, "write") then
+	elseif (action == "move") then
+		if not AdvDupe.CheckPerms(ply, "", dir2, "delete") then 
+			AdvDupe.SendClientError(ply, "You lack delete permissions in "..dir)
+			return 
+		end
+		if not AdvDupe.CheckPerms(ply, "", dir2, "write") then 
+			AdvDupe.SendClientError(ply, "You lack write permissions in "..dir2)
+			return 
+		end
 		
 		if dir == dir2 then
 			AdvDupe.SendClientError(ply, "Cannot move file to same directory")
@@ -952,7 +970,11 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		AdvDupe.FileOpts(ply, "copy", filename, dir, dir2)
 		AdvDupe.FileOpts(ply, "delete", filename, dir)
 		
-	elseif (action == "makedir") and AdvDupe.CheckPerms(ply, "", dir, "makedir") then
+	elseif (action == "makedir") then
+		if not AdvDupe.CheckPerms(ply, "", dir, "write") then 
+			AdvDupe.SendClientError(ply, "You lack write permissions in "..dir)
+			return 
+		end
 		
 		if !game.SinglePlayer() and dupeshare.NamedLikeAPublicDir(filename) then
 			AdvDupe.SendClientError(ply, "You Cannot Name a Folder Like a Public Folder")
@@ -968,13 +990,20 @@ function AdvDupe.FileOpts(ply, action, filename, dir, dir2)
 		AdvDupe.HideGhost(ply, false)
 		AdvDupe.UpdateList(ply)
 		
-	elseif (action == "rename") and AdvDupe.CheckPerms(ply, "", dir, "delete")
-							and AdvDupe.CheckPerms(ply, "", dir, "write") then
+	elseif (action == "rename") then
+		if not (AdvDupe.CheckPerms(ply, "", dir, "delete") and AdvDupe.CheckPerms(ply, "", dir, "write")) then 
+			AdvDupe.SendClientError(ply, "You lack delete permissions in "..dir)
+			return 
+		end
 		
 		AdvDupe.FileOpts(ply, "duplicate", filename, dir, dir2)
 		AdvDupe.FileOpts(ply, "delete", filename, dir)
 		
-	elseif (action == "duplicate") and AdvDupe.CheckPerms(ply, "", dir, "write") then
+	elseif (action == "duplicate") then
+		if not AdvDupe.CheckPerms(ply, "", dir, "write") then 
+			AdvDupe.SendClientError(ply, "You lack delete permissions in "..dir)
+			return 
+		end
 		
 		local file2 = (dir.."/"..dir2):lower() --using dir2 to hold the new filename
 		if file.Exists(file2, "DATA") then
