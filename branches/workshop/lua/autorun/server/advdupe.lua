@@ -1871,7 +1871,6 @@ end
 
 function AdvDupe.StartPaste( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger, FromPaster )
 	hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
-	hook.Call("AdvDupe_StartPasting", AdvDupe, Player, NumOfEnts)
 	
 	if ( FromPaster ) and ( NumOfEnts + NumOfConst > PasterInstantPasteThreshold ) then
 		local CreatedEntities, CreatedConstraints = {},{}
@@ -1998,6 +1997,8 @@ function AdvDupe.NormPaste( Player, EntityList, ConstraintList, HeadEntityIdx, O
 end
 
 function AdvDupe.Paste( Player, EntityList, ConstraintList, HeadEntityIdx, Offset, HoldAngle, Shooting_Ent, PastewoConst, CreatedEntities, CreatedConstraints )
+	
+	hook.Call("AdvDupe_StartPasting", AdvDupe, Player, EntityList)
 	
 	--local CreatedEntities = {}
 	
