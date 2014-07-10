@@ -1871,6 +1871,7 @@ end
 
 function AdvDupe.StartPaste( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger, FromPaster )
 	hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
+	hook.Run("AdvDupe_StartPasting", AdvDupe, Player, NumOfEnts)
 	
 	if ( FromPaster ) and ( NumOfEnts + NumOfConst > PasterInstantPasteThreshold ) then
 		local CreatedEntities, CreatedConstraints = {},{}
@@ -1998,8 +1999,6 @@ end
 
 function AdvDupe.Paste( Player, EntityList, ConstraintList, HeadEntityIdx, Offset, HoldAngle, Shooting_Ent, PastewoConst, CreatedEntities, CreatedConstraints )
 	
-	hook.Run("AdvDupe_StartPasting", AdvDupe, Player, EntityList)
-	
 	--local CreatedEntities = {}
 	
 	--
@@ -2055,6 +2054,8 @@ end
 --	Paste of time
 --
 function AdvDupe.OverTimePasteStart( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger )
+	
+	hook.Run("AdvDupe_StartPasting", AdvDupe, Player, NumOfEnts)
 	
 	local EntityList = {}
 	local EntIDList = {}
