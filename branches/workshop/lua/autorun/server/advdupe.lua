@@ -1871,7 +1871,7 @@ end
 
 function AdvDupe.StartPaste( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger, FromPaster )
 	hook.Add("Think", "AdvDupe_Think", AdvDupeThink)
-	hook.Run("AdvDupe_StartPasting", AdvDupe, Player, NumOfEnts)
+	hook.Run("AdvDupe_StartPasting", Player, NumOfEnts)
 	
 	if ( FromPaster ) and ( NumOfEnts + NumOfConst > PasterInstantPasteThreshold ) then
 		local CreatedEntities, CreatedConstraints = {},{}
@@ -2054,8 +2054,6 @@ end
 --	Paste of time
 --
 function AdvDupe.OverTimePasteStart( Player, inEntityList, inConstraintList, HeadEntityIdx, HitPos, HoldAngle, NumOfEnts, NumOfConst, PasteFrozen, PastewoConst, CallOnPasteFin, DontRemoveThinger, Thinger )
-	
-	hook.Run("AdvDupe_StartPasting", AdvDupe, Player, NumOfEnts)
 	
 	local EntityList = {}
 	local EntIDList = {}
@@ -2380,7 +2378,7 @@ end
 function AdvDupe.FinishPasting( TimedPasteData,TimedPasteDataCurrent )
 	-- This hook is for E2's dupefinished function
 	-- Use TimedPasteData[TimedPasteDataCurrent].Player to get the player
-	hook.Run("AdvDupe_FinishPasting", AdvDupe, TimedPasteData, TimedPasteDataCurrent)
+	hook.Run("AdvDupe_FinishPasting", TimedPasteData, TimedPasteDataCurrent)
 	
 	if ( !TimedPasteData[TimedPasteDataCurrent].DontRemoveThinger ) then
 		if IsValid( TimedPasteData[TimedPasteDataCurrent].Shooting_Ent.Entity ) then
