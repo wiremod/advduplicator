@@ -95,8 +95,20 @@ local function SerialiseChunk( chunk, tables, StrTbl, dontpoolstrings )
 	elseif ctype == "Angle"   then return string.format( "A:%g,%g,%g", chunk.pitch, chunk.yaw, chunk.roll )
 	elseif ctype == "Player"  then return 'P:'..chunk:UniqueID()
 	elseif ctype == "table"   then
+		local meta
+		if IsColor( chunk ) then
+			-- color objects now have a __tostring metamethod which breaks adv dupe saving
+			-- to fix this, we temporarily remove the metatable in order to gain access to the color's table so that we can get its ID and then proceed as usual
+			meta = getmetatable( chunk )
+			setmetatable( chunk, nil )
+		end
 		
 		local ID = tostring( chunk ):sub( 8 )
+		
+		if meta then
+			-- Reset the metatable so we don't break stuff
+			setmetatable( chunk, meta )
+		end
 		
 		// tables[ID] must exist before the table is serialised else we could end up with an infinite loop.
 		if !tables[ID] then tables[ID] = true tables[ID] = Serialiser.SerialiseTableKeyValues( chunk, tables, StrTbl, dontpoolstrings ) end
