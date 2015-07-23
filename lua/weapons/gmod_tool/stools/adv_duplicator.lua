@@ -115,9 +115,14 @@ function TOOL:RightClick( trace )
 	
 	local AddToSelection = self:GetOwner():KeyDown(IN_SPEED) and not self.Legacy and not self.FileLoaded and self.Copied
 	
-	if not AddToSelection and not trace.Entity or not trace.Entity:IsValid() or trace.Entity:IsPlayer() then
+	if not AddToSelection and not IsValid(trace.Entity) or trace.Entity:IsPlayer() then
 		self:ClearClipBoard()
 		return true
+	end
+
+	-- Filter duplicator blocked entities out.
+	if IsValid(trace.Entity) and trace.Entity.DoNotDuplicate then
+		return false
 	end
 	
 	if CLIENT then return true end
