@@ -2447,6 +2447,8 @@ function AdvDupe.PasteEntity( Player, EntTable, EntID, Offset, HoldAngle )
 	if IsValid( Ent ) then
 		
 		Player:AddCleanup( "duplicates", Ent )
+
+		if Ent.OnDuplicated then Ent:OnDuplicated(EntTable) end
 		
 		Ent.BoneMods = table.Copy( EntTable.BoneMods )
 		Ent.EntityMods = table.Copy( EntTable.EntityMods )
