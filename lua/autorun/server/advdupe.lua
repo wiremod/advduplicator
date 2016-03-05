@@ -2337,6 +2337,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 					
 					Ent:SetNotSolid(false)
 					
+					// Note: As of February 2016 Gmod Hotfix #2, SetParent'ing a frozen prop will unfreeze it (though it stays asleep), so we have to refreeze it
 					Ent:SetParent()
 					
 					for Bone = 0, Ent:GetPhysicsObjectCount() do
@@ -2344,6 +2345,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 						if IsValid( Phys ) then
 							if ( PasteFrozen or PastewoConst ) or ( EntTable.PhysicsObjects[0].Frozen ) then
 								if ( !(Ent.EntityMods and Ent.EntityMods.Freeze_o_Matic_SuperFreeze and Ent.EntityMods.Freeze_o_Matic_SuperFreeze.NoPickUp == true) ) then
+									Phys:EnableMotion(false)
 									Player:AddFrozenPhysicsObject( Ent, Phys )
 								end
 							else
