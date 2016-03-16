@@ -511,7 +511,9 @@ end--]]
 --	Gets savable info from an entity
 --
 function AdvDupe.GetSaveableEntity( Ent, Offset )
-	
+	-- Filter duplicator blocked entities out.
+	if ( Ent.DoNotDuplicate ) then return end
+
 	if ( Ent.PreEntityCopy ) then Ent:PreEntityCopy() end
 	
 	--we're going to be a little distructive to this table, let's not use the orginal
@@ -644,7 +646,10 @@ end
 --	Gets savable info from an constraint
 --
 function AdvDupe.GetSaveableConst( ConstraintEntity, Offset )
-	if (!ConstraintEntity) then return {} end
+	if (!ConstraintEntity) then return end
+
+	-- Filter duplicator blocked constraint out.
+	if ConstraintEntity.DoNotDuplicate then return end
 	
 	local SaveableConst = {}
 	local ConstTable = ConstraintEntity:GetTable()
@@ -714,11 +719,21 @@ end
 --	Compatable in place of duplicator.GetAllConstrainedEntitiesAndConstraints
 --	Do not steal
 function AdvDupe.Copy( Ent, EntTable, ConstraintTable, Offset )
-	
-	if not IsValid(Ent) or EntTable[ Ent:EntIndex() ] or ( Ent:GetClass() == "prop_physics" and Ent:GetVar("IsPlug",nil) == 1 ) then
+	if not IsValid(Ent) then
 		return EntTable, ConstraintTable
 	end
-	
+
+	if EntTable[ Ent:EntIndex() ] then
+		return EntTable, ConstraintTable
+	end
+
+	if ( Ent:GetClass() == "prop_physics" and Ent:GetVar("IsPlug", nil) == 1 ) then
+		return EntTable, ConstraintTable
+	end
+
+	-- Filter duplicator blocked entities out.
+	--if Ent.DoNotDuplicate then return EntTable, ConstraintTable end
+
 	EntTable[ Ent:EntIndex() ] = AdvDupe.GetSaveableEntity( Ent, Offset )
 	if ( !constraint.HasConstraints( Ent ) ) then return EntTable, ConstraintTable end
 	
@@ -726,16 +741,13 @@ function AdvDupe.Copy( Ent, EntTable, ConstraintTable, Offset )
 		if ( !ConstraintTable[ ConstraintEntity ] ) and ConstraintEntity.Type != "" then
 			local ConstTable, ents = AdvDupe.GetSaveableConst( ConstraintEntity, Offset )
 			ConstraintTable[ ConstraintEntity ] = ConstTable
-			for k,e in pairs(ents) do
-				if ( e and ( e:IsWorld() or e:IsValid() ) ) and ( !EntTable[ e:EntIndex() ] ) then
-					AdvDupe.Copy( e, EntTable, ConstraintTable, Offset )
-				end
+			for k,e in pairs(ents or {}) do
+				AdvDupe.Copy( e, EntTable, ConstraintTable, Offset )
 			end
 		end
 	end
 	
 	return EntTable, ConstraintTable
-	
 end
 
 
@@ -746,17 +758,23 @@ end
 --	Might be usefull for for something later
 --
 function AdvDupe.GetEntitysConstrainedEntitiesAndConstraints( ent )
-	if ( !Ent ) then return {},{} end
+	if not IsValid( Ent ) then return {},{} end
+
+	-- Filter duplicator blocked entities out.
+	if Ent.DoNotDuplicate then return {},{} end
+
 	local Consts, Ents = {},{}
 	Ents[ Ent:EntIndex()] = Ent
 	if ( constraint.HasConstraints( Ent ) ) then
 		for key, ConstraintEntity in pairs( Ent.Constraints ) do
+			if ConstraintEntity.DoNotDuplicate then continue end
 			local ConstTable = ConstraintEntity:GetTable()
 			table.insert( Consts, ConstraintEntity )
 			for i=1, 6 do
 				local entn = "Ent"..i
 				if ( ConstTable[ entn ] && ( ConstTable[ entn ]:IsWorld() || ConstTable[ entn ]:IsValid() ) ) then
 					local ent = ConstTable[ entn ]
+					if ent.DoNotDuplicate then continue end
 					Ents[ ent:EntIndex() ] = ent
 				end
 			end
@@ -766,23 +784,34 @@ function AdvDupe.GetEntitysConstrainedEntitiesAndConstraints( ent )
 end
 
 function AdvDupe.GetAllEnts( Ent, OrderedEntList, EntsTab, ConstsTab )
-	if IsValid(Ent) and !EntsTab[ Ent:EntIndex() ] then
-		EntsTab[ Ent:EntIndex() ] = Ent
-		table.insert(OrderedEntList, Ent)
-		if ( !constraint.HasConstraints( Ent ) ) then return OrderedEntList end
-		for key, ConstraintEntity in pairs( Ent.Constraints ) do
-			if ( !ConstsTab[ ConstraintEntity ] ) then
-				ConstsTab[ ConstraintEntity ] = true
-				local ConstTable = ConstraintEntity:GetTable()
-				for i=1, 6 do
-					local e = ConstTable[ "Ent"..i ]
-					if IsValid(e) and ( !EntsTab[ e:EntIndex() ] ) then
-						AdvDupe.GetAllEnts( e, OrderedEntList, EntsTab, ConstsTab )
-					end
-				end
+	if not IsValid( Ent ) then
+		return OrderedEntList
+	end
+
+	if EntsTab[ Ent:EntIndex() ] then
+		return OrderedEntList
+	end
+
+	-- Filter duplicator blocked entities out.
+	if Ent.DoNotDuplicate then
+		return OrderedEntList
+	end
+	
+	EntsTab[ Ent:EntIndex() ] = Ent
+	table.insert(OrderedEntList, Ent)
+	if ( !constraint.HasConstraints( Ent ) ) then return OrderedEntList end
+	for key, ConstraintEntity in pairs( Ent.Constraints ) do
+		if ConstraintEntity.DoNotDuplicate then continue end
+		if ( !ConstsTab[ ConstraintEntity ] ) then
+			ConstsTab[ ConstraintEntity ] = true
+			local ConstTable = ConstraintEntity:GetTable()
+			for i=1, 6 do
+				local e = ConstTable[ "Ent"..i ]
+				AdvDupe.GetAllEnts( e, OrderedEntList, EntsTab, ConstsTab )
 			end
 		end
 	end
+	
 	return OrderedEntList
 end
 
@@ -2308,6 +2337,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 					
 					Ent:SetNotSolid(false)
 					
+					// Note: As of February 2016 Gmod Hotfix #2, SetParent'ing a frozen prop will unfreeze it (though it stays asleep), so we have to refreeze it
 					Ent:SetParent()
 					
 					for Bone = 0, Ent:GetPhysicsObjectCount() do
@@ -2315,6 +2345,7 @@ function AdvDupe.OverTimePasteProcess( Player, EntityList, ConstraintList, HeadE
 						if IsValid( Phys ) then
 							if ( PasteFrozen or PastewoConst ) or ( EntTable.PhysicsObjects[0].Frozen ) then
 								if ( !(Ent.EntityMods and Ent.EntityMods.Freeze_o_Matic_SuperFreeze and Ent.EntityMods.Freeze_o_Matic_SuperFreeze.NoPickUp == true) ) then
+									Phys:EnableMotion(false)
 									Player:AddFrozenPhysicsObject( Ent, Phys )
 								end
 							else
@@ -2418,6 +2449,8 @@ function AdvDupe.PasteEntity( Player, EntTable, EntID, Offset, HoldAngle )
 	if IsValid( Ent ) then
 		
 		Player:AddCleanup( "duplicates", Ent )
+
+		if Ent.OnDuplicated then Ent:OnDuplicated(EntTable) end
 		
 		Ent.BoneMods = table.Copy( EntTable.BoneMods )
 		Ent.EntityMods = table.Copy( EntTable.EntityMods )
@@ -2584,7 +2617,7 @@ end
 --
 function AdvDupe.CreateConstraintFromTable( Player, Constraint, EntityList, Offset, HoldAngle )
 	if ( !Constraint ) then return end
-	
+
 	local Factory = duplicator.ConstraintType[ Constraint.Type ]
 	if ( !Factory ) then return end
 	
@@ -2769,6 +2802,16 @@ hook.Add("InitPostEntity", "GetCaselessEntTable", function()
 	end
 end)
 
+local function IsAllowed(Player, Class, EntityClass)
+	if ( scripted_ents.GetMember( Class, "DoNotDuplicate" ) ) then return false end
+
+	if ( IsValid( Player ) and (!Player:IsAdmin() or !DontAllowPlayersAdminOnlyEnts)) then
+		if !duplicator.IsAllowed(Class) then return false end
+		if ( !scripted_ents.GetMember( Class, "Spawnable" ) and not EntityClass ) then return false end
+		if ( scripted_ents.GetMember( Class, "AdminOnly" ) ) then return false end
+	end
+	return true
+end
 
 --
 --	==Even More Admin stuff==
@@ -2783,6 +2826,10 @@ end)
 local CheckFunctions = {}
 function AdvDupe.CheckOkEnt( Player, EntTable )
 	EntTable.Class = EntTable.Class or ""
+
+	-- Filter duplicator blocked entities out.
+	if EntTable.DoNotDuplicate then return false end
+
 	--MsgN("EntCheck on Class: ",EntTable.Class)
 	for HookName, TheHook in pairs (CheckFunctions) do
 		
@@ -2810,8 +2857,14 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 		
 	end
 	
-	local test = GetCaselessEntTable( EntTable.Class )
+	local EntityClass = duplicator.FindEntityClass( EntTable.Class )
+	if not IsAllowed(Player, EntTable.Class, EntityClass) then
+		AdvDupe.SendClientError(Player, "Sorry, you can't cheat like that")
+		MsgN("AdvDupeERROR: ",tostring(Player)," tried to paste admin only prop ",(EntTable.Class or "NIL")," : ",EntID)
+		return false
+	end
 	
+	--[[local test = GetCaselessEntTable( EntTable.Class )
 	if ( Player:IsAdmin( ) or Player:IsSuperAdmin() or game.SinglePlayer() or !DontAllowPlayersAdminOnlyEnts ) then
 		return true
 	elseif ( test and test.t and test.t.AdminSpawnable and !test.t.Spawnable ) then
@@ -2821,7 +2874,9 @@ function AdvDupe.CheckOkEnt( Player, EntTable )
 	else
 		return true
 		--return false
-	end
+	end]]
+	
+	return true
 end
 
 -- Func = HookFunction( Player, Class, EntTable )
