@@ -1,14 +1,18 @@
 {
 	"title"		:	"Advanced Duplicator",
 	"type"		:	"tool",
-	"tags"		:	[ "build", "fun" ],
+	"tags"		:	[ "build" ],
 	"description":	"A tool for duplicating contraptions that include many complex components including Wiremod devices, and most other SENTs.",
 	"ignore"	:
 	[
+		"*.psd",
+		"*.vcproj",
 		"*.svn*",
 		"*.txt",
+		"*.xcf",
 		".git*",
 		".gitignore",
+		"git-hooks-pre-commit",
 		"license",
 		"readme.md"
 	]
