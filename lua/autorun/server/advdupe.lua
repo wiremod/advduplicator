@@ -2678,7 +2678,7 @@ function AdvDupe.CreateConstraintFromTable( Player, Constraint, EntityList, Offs
 	
 	
 	local ok, Result = xpcall( Factory.Func, debug.traceback, unpack(Args) )
-	if ( !ok ) then
+	if ( !ok or !IsValid( Result ) ) then
 		MsgN("AdvDupeERROR: CreateConstraint failed to make \"",(Constraint.Type or "NIL"),"\", Error: ",tostring(Result))
 		AdvDupe.SendClientError( Player, "Failed to make \""..(Constraint.Type or "NIL").."\"" )
 		return
