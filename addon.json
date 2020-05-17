@@ -16,6 +16,7 @@
 		"git-hooks-pre-commit",
 		"license",
 		"readme.md",
-		"advdupe.jpg"
+		"advdupe.jpg",
+		"SECURITY.md"
 	]
 }
