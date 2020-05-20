@@ -12,11 +12,17 @@
 		"*.xcf",
 		".git*",
 		".gitignore",
+		".luacheckrc",
+		".travis.yml",
+		"CODE_OF_CONDUCT.md",
 		"CONTRIBUTING.md",
+		"generate-luacheck.sh",
 		"git-hooks-pre-commit",
+		"gitrid.sh",
 		"license",
 		"readme.md",
 		"advdupe.jpg",
+		"advdupe.psd",
 		"SECURITY.md"
 	]
 }
