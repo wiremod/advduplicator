@@ -9,9 +9,6 @@ TOOL.Name			= "#tool.adv_duplicator.name"
 TOOL.IsAdvDuplicator = true
 
 if CLIENT then
-	language.Add( "tool.adv_duplicator.name", "Advanced Duplicator" )
-	language.Add( "tool.adv_duplicator.desc", "Duplicate an entity, or group of entities" )
-	language.Add( "tool.adv_duplicator.0", "Left: Paste, Right: Copy, Reload: Place/Update Paster" )
 end
 
 
