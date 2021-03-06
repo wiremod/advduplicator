@@ -7,22 +7,13 @@
 	[
 		"*.psd",
 		"*.vcproj",
-		"*.svn*",
 		"*.txt",
 		"*.xcf",
 		".git*",
-		".gitignore",
-		".luacheckrc",
+		"*.md",
 		".travis.yml",
-		"CODE_OF_CONDUCT.md",
-		"CONTRIBUTING.md",
-		"generate-luacheck.sh",
 		"git-hooks-pre-commit",
-		"gitrid.sh",
-		"license",
-		"readme.md",
-		"advdupe.jpg",
-		"advdupe.psd",
-		"SECURITY.md"
+		"LICENSE",
+		"advdupe.jpg"
 	]
 }
