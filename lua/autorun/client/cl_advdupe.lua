@@ -15,12 +15,12 @@ local UploadSendDelay = 0.15
 local MaxUploadSize = 0
 local CanDownload = true
 
-local function RcvUploadSettings( um )
-	MaxUploadLength = um:ReadShort()
-	UploadPiecesPerSend = um:ReadShort()
-	UploadSendDelay = um:ReadShort() / 100
+local function RcvUploadSettings( len, ply )
+	MaxUploadLength = net.ReadInt()
+	UploadPiecesPerSend = net.ReadInt()
+	UploadSendDelay = net.ReadInt() / 100
 end
-usermessage.Hook("AdvDupeUploadSettings", RcvUploadSettings)
+net.Receive("AdvDupeUploadSettings", RcvUploadSettings)
 
 local function RcvMaxUploadSize( um )
 	MaxUploadSize = um:ReadShort()

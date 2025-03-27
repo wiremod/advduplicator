@@ -1075,6 +1075,7 @@ function AdvDupe.SendClientError(ply, errormsg, NoSound)
 		umsg.Bool(NoSound)
 	umsg.End()
 end
+
 function AdvDupe.SendClientInfoMsg(ply, msg, NoSound)
 	if ( !IsValid(ply) or !ply:IsPlayer() or !msg ) then return end
 	MsgN("AdvDupe, Sending This InfoMsg to ",tostring(ply),"\nAdvDupe: \"",tostring(msg).."\"")
@@ -1180,14 +1181,16 @@ local PlayerSettings = {}
 --	admin setting function
 --
 --	uploads
+util.AddNetworkString("AdvDupeUploadSettings")
 local function SendUploadSettings( ply, pieces, delay )
 	if ( ply ) and ( !IsValid(ply) or !ply:IsPlayer() ) then return end
-	umsg.Start( "AdvDupeUploadSettings", ply )
-		umsg.Short( MaxUploadLength )
-		umsg.Short( pieces )
-		umsg.Short( delay * 100 )
-	umsg.End()
+	net.Start( "AdvDupeUploadSettings" )
+		net.WriteInt( MaxUploadLength )
+		net.WriteInt( pieces )
+		net.WriteInt( delay * 100 )
+	net.Send( ply )
 end
+
 local function SendMaxUploadSize( ply, Kchars )
 	if ( ply ) and ( !IsValid(ply) or !ply:IsPlayer() ) then return end
 	umsg.Start( "AdvDupeMaxUploadSize", ply )
