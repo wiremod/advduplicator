@@ -1,3 +1,7 @@
+# NOTICE: Advanced Duplicator is NO LONGER SUPPORTED. Please use AdvDupe2.
+
+This repository is now archived, and will not be updated.
+
 # Advanced Duplicator
 
 The Advanced Duplicator is a tool to let you duplicate contraptions that include many complex components including Wiremod devices.
